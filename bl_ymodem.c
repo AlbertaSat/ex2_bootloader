@@ -281,7 +281,6 @@ int Ymodem_Receive (sciBASE_t *sci, char *buf, uint32_t address)
 						}
 						/* Initialize the Flash Wrapper registers */
 						oReturnCheck = 0;
-						// CRASH HERE
 						oReturnCheck = Fapi_BlockErase(FlashDestination, imageSize);
 						// Return an error if an access violation occurred.
 						if(oReturnCheck)
