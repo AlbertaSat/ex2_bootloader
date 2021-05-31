@@ -49,9 +49,7 @@
 /* Include Files */
 
 #include "HL_esm.h"
-#include "HL_gio.h"
 #include "HL_sci.h"
-#include "HL_rti.h"
 #include "HL_epc.h"
 #include "HL_sys_dma.h"
 
@@ -108,26 +106,6 @@ void dmaGroupANotification(dmaInterrupt_t inttype, uint32 channel)
 /* USER CODE END */
 
 /* USER CODE BEGIN (11) */
-/* USER CODE END */
-#pragma WEAK(rtiNotification)
-void rtiNotification(rtiBASE_t *rtiREG, uint32 notification)
-{
-/*  enter user code between the USER CODE BEGIN and USER CODE END. */
-/* USER CODE BEGIN (12) */
-/* USER CODE END */
-}
-
-/* USER CODE BEGIN (13) */
-/* USER CODE END */
-#pragma WEAK(gioNotification)
-void gioNotification(gioPORT_t *port, uint32 bit)
-{
-/*  enter user code between the USER CODE BEGIN and USER CODE END. */
-/* USER CODE BEGIN (22) */
-/* USER CODE END */
-}
-
-/* USER CODE BEGIN (23) */
 /* USER CODE END */
 
 #pragma WEAK(sciNotification)

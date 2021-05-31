@@ -25,6 +25,8 @@
 #ifndef __BL_CONFIG_H__
 #define __BL_CONFIG_H__
 
+#include <stdint.h>
+
 //*****************************************************************************
 //
 // The following defines are used to configure the operation of the boot
@@ -55,13 +57,6 @@
 // Requires: None
 //
 //*****************************************************************************
-//#define TMS570LS31
-//#define RM48
-//#define TMS570LS12
-//#define RM46
-//#define TMS570LS04
-//#define RM42
-
 #define   TMS570LC43
 #define CRYSTAL_FREQ            16             //MHz
 #define SYS_CLK_FREQ            150            //MHz
@@ -72,8 +67,6 @@
 // Requires: UART_FIXED_BAUDRATE, BUFFER_SIZE
 //*****************************************************************************
 #define UART_ENABLE_UPDATE
-//#define SPI_ENABLE_UPDATE
-//#define CAN_ENABLE_UPDATE
 
 //*****************************************************************************
 // The starting address of the application.  This must be a multiple of 32K(sector size)
@@ -85,59 +78,40 @@
 //#define APP_START_ADDRESS       0x00200020
 
 //*****************************************************************************
-// The address to store the update status of the application image
+// The blocknumber to store the update status of the application image
 // It contains Application Start Address, Application Image Size, etc
 //
 //*****************************************************************************
- #define APP_STATUS_ADDRESS       0x00200000
+#define APP_STATUS_BLOCKNUMBER 2 // status byte reports 1 if program present
+#define APP_STATUS_OFFSET 0
+#define APP_STATUS_LEN sizeof(image_info)
+
+#define GOLD_STATUS_BLOCKNUMBER 3
+#define GOLD_STATUS_OFFSET 0
+#define GOLD_STATUS_LEN sizeof(image_info)
+
+#define GOLD_DEFAULT_ADDR 0x00080000
+#define GOLD_START_BANK 0
+#define APP_DEFAULT_ADDR 0x00200000
+#define APP_START_BANK 1
+
+#define BOOT_TYPE_BLOCK 1
+#define BOOT_TYPE_OFFSET 0
+#define BOOT_TYPE_LEN 1
+
+// Representation of data which will be stored in FEE flash
+typedef struct __attribute__((packed)) {
+    uint8_t exists; // 1 for exists, 0 for does not exist
+    uint32_t size;
+    uint32_t addr;
+    uint16_t crc;
+} image_info;
 
 /* UART is used in all the boot modes*/
-//#if defined (UART_ENABLE_UPDATE)
-#define UART_BAUDRATE     115200
 #define UART              sciREG1   /* Use UART port 1 for UART boot */
-//#endif
-
-#if defined (SPI_ENABLE_UPDATE)
-#define SPI_PORT              spiREG2    /*use SPI2 for SPI boot*/
-#endif
-
-#if defined (CAN_ENABLE_UPDATE)
-#define CAN_PORT                 canREG1
-#define CAN_BIT_RATE             125000   /*can be 125K, 250K, 500K, 750K, 1000K. The default is 125K*/
-#endif
 
 #define BUFFER_SIZE             64       /*words in the data buffer used for receiving packets*/
 
-//*****************************************************************************
-// Enables the pin-based forced update check.  When enabled, the boot loader
-// will go into update mode instead of calling the application if a pin is read
-// at a particular polarity, forcing an update operation.  In either case, the
-// application is still able to return control to the boot loader in order to
-// start an update. 
-//
-// Requires: FORCED_UPDATE_PERIPH, FORCED_UPDATE_PORT, FORCED_UPDATE_PIN,
-//           FORCED_UPDATE_POLARITY
-//*****************************************************************************
-
-//#define ENABLE_UPDATE_CHECK
-
-#if defined (ENABLE_UPDATE_CHECK)
-//*****************************************************************************
-//
-// The GPIO port to check for a forced update.  This will be one of the
-// GPIO_PORTx_BASE values, where "x" is replaced with the port name (A or B).
-// Depends on: ENABLE_UPDATE_CHECK
-//*****************************************************************************
-#define FORCED_UPDATE_PORT      GPIO_PORTA_BASE
-
-//*****************************************************************************
-// The pin to check for a forced update.  This is a value between 0 and 7.
-//
-// Depends on: ENABLE_UPDATE_CHECK
-//*****************************************************************************
-#define FORCED_UPDATE_PIN       7
-
-#endif
 
 //#define   DEBUG_MSG_L3
 #endif // __BL_CONFIG_H__

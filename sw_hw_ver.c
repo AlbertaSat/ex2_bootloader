@@ -30,6 +30,7 @@
 #include "HL_system.h"
 #include "HL_sci.h"
 #include "sci_common.h"
+#include "printf.h"
 
 
 #define DIE_ID1 		(*(volatile unsigned int *) 0xFFFFE1F0)
@@ -44,7 +45,7 @@
 */
 void get_software_Version(void)
 {
-	UART_putString(UART, "\n\r\ The BootLoader Version: V1.0 \n\n\r" );
+	printf("\n\r BootLoader Version: V2.0 \n\r" );
 	return;
 }
 
@@ -62,17 +63,17 @@ void get_hardware_Info(void)
 	LOT_NUM   =  ((DIE_ID1 & 0xFFC00000) >> 22) | ((DIE_ID2 & 0x00003FFF) << 10);
 	WAFER_LOC_NUM = (DIE_ID1 & 0x003FFFFF);
 	
-	UART_putString(UART, "\n\r Device Information: \r\n\ ");
+	printf("\r\n Device Information: \r\n");
 
-	UART_putString(UART, "DEV:  ");
+	printf("DEV:  ");
 	UART_send32BitData(UART, systemREG1->DEVID);
-	UART_putString(UART, "  \r\n ");
-	UART_putString(UART, "LOT NUM:  ");
+	printf("  \r\n ");
+	printf("LOT NUM:  ");
 	UART_send32BitData(UART, LOT_NUM);
-	UART_putString(UART, " \r\n ");
-	UART_putString(UART, "WAFER LOC NUM:  ");
+	printf(" \r\n ");
+	printf("WAFER LOC NUM:  ");
 	UART_send32BitData(UART, (WAFER_LOC_NUM));
-	UART_putString(UART, " \n\n\r\n ");
+	printf(" \n\n\r\n ");
 
 	return;
 }

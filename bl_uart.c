@@ -1,3 +1,4 @@
+#ifdef NOT
 //*****************************************************************************
 //
 // bl_uart.c : Functions to transfer data via the UART port.
@@ -29,6 +30,12 @@ extern long long int APP_START_ADDRESS;
 #include "sci_common.h"
 #include "bl_ymodem.h"
 #include "HL_sys_common.h"
+#include "printf.h"
+#include "bl_launch.h"
+#include "bl_eeprom.h"
+#include "HL_reg_system.h"
+#include "ti_fee.h"
+
 
 
 //crc16 function declaration
@@ -38,13 +45,10 @@ uint32_t JumpAddress;
 void get_software_Version(void);
 void get_hardware_Info(void);
 
-extern uint32_t g_pulUpdateSuccess[8];
-extern uint32_t g_ulUpdateStatusAddr;
-extern uint32_t g_ulUpdateBufferSize;    //32 bytes or 8 32-bit words
 extern char fileName[FILENAME_LEN];
 char tab_1024[1024] = {    0  };
 
-uint8_t receive_command[8]={0};  //format maybe #0x12345678$
+uint8_t receive_command[10]={0};  //format maybe #0x12345678$
 uint32_t address_num=0;
 
 int crc_GI= 0xB371;
@@ -69,70 +73,26 @@ uint32_t image_num_arr[2]={0};
   * @param  None
   * @retval None
   */
-void UART_Download()
-{
-  char Number[10] = "          ";
-  int Size = 0;
+int UART_Download(uint32_t address) {
+    char Number[10] = "          ";
+    int Size = 0;
 
-  UART_putString(UART, "\n\r Waiting for the file to be sent ... ");
-  UART_putString(UART, "\n\r Use Transfer->Send File and Ymodem Protocol from HyperTerminal \n\r");
+    printf("\n\r Waiting for the file to be sent ... ");
+    printf("\n\r Use the ymodem protocol in your chosen serial terminal \n\r");
 
-  Size = Ymodem_Receive(UART, &tab_1024[0]);
-  if (Size > 0)
-  {
-    UART_putString(UART, "\n\r The application image has been programmed successfully!\n\r---------------------------\n\r Name: ");
-    UART_putString(UART, fileName);
-    Int2Str(Number, Size);
-    UART_putString(UART, "\n\n\r Size:     ");
-    UART_putString(UART, Number);
-    UART_putString(UART, "  Bytes\n\r");
-    UART_putString(UART, "---------------------------\n\n\n\n\r");
-  }
-  else
-  {
-    UART_putString(UART, "\n\rFailed to receive the file!\n\r");
-  }
-}
-
-/**
-  * @brief  Upload a file via serial port.
-  * @param  None
-  * @retval None
-  */
-void UART_Upload(void)
-{
-	  uint32_t status = 0;
-	  uint32_t *updateInfo;
-	  uint32_t imageSize;
-	  uint32_t imageAddress;
-
-	  updateInfo = (uint32_t *)g_ulUpdateStatusAddr;
-
-	  imageAddress = updateInfo[1];
-	  imageSize = updateInfo[2];
-
-
-	  UART_putString(UART, "\n\n\rSelect Receive File and Ymodel protocol in the drop-down menu... (press any key to abort)\n\r");
-
-	  if (UART_getKey(UART) == CRC )
-	  {
-			/* Transmit the flash image through ymodem protocol */
-			status = Ymodem_Transmit(UART, (uint8_t*)imageAddress, (char*)"UploadedApplicationImage.bin", imageSize);
-
-			if (status != 0)
-			{
-				UART_putString(UART, "\n\rError occured while transmitting\n\r");
-			}
-			else
-			{
-				UART_putString(UART, "\n\rApplication image has been transmitted successfully \n\n\n\r");
-			}
-	  }
-	  else
-	  {
-		  UART_putString(UART, "\r\n\nAborted by user.\n\r");
-	  }
-
+    Size = Ymodem_Receive(UART, &tab_1024[0], address);
+    if (Size > 0) {
+        printf("\n\r The application image has been programmed successfully!\n\r---------------------------\n\r Name: ");
+        printf(fileName);
+        Int2Str(Number, Size);
+        printf("\n\n\r Size:     ");
+        printf(Number);
+        printf("  Bytes\n\r");
+        printf("---------------------------\n\n\n\n\r");
+    } else {
+        printf("\n\rFailed to receive the file!\n\r");
+    }
+    return Size;
 }
 
 //*****************************************************************************
@@ -145,255 +105,186 @@ void UART_Upload(void)
 //! \return Never returns.
 //
 //*****************************************************************************
-void UpdaterUART(void)
-{
-	  char key = 0;
-
-	  while (1)
-	  {
-//		    LITE_TOPRIGHT_LED;
-			UART_putString(UART, "\r================== Main Menu ==========================\r\n");
-            UART_putString(UART, "  0. Receive The Application Start Address\r\n");
-			UART_putString(UART, "  1. Write the binary image to the Internal Flash of MCU \r\n");
-			UART_putString(UART, "  2. Download the binary image from the internal flash \r\n");
-			UART_putString(UART, "  3. Execute the first written image( upper address in memory) \r\n");
-			UART_putString(UART, "  4. Get Bootloader Version \r\n");
-			UART_putString(UART, "  5. Get Device Information \r\n");
-            UART_putString(UART, "  6. Execute the second written image (lower address in memory) \r\n");
-			UART_putString(UART, "  7. Calculate the CRC of the working image \r\n");
-		    UART_putString(UART, "  8. Calculate the CRC of the golden image \r\n");
-			UART_putString(UART,   "=======================================================\r\n\n");
-
-			key = UART_getKey(UART);
-
-
-			if (key == 0x30)
-			            {
-
-			               UART_putString(UART, "Enter The Application Start Address \n\r\n\r");
-			               sciReceive(UART, 8, &receive_command[0]);
-			               UART_putString(UART, "\n\r\n\r The Entered Address Is: \n\r\n\r");
-			               UART_putString(UART,receive_command);
-			               UART_putString(UART, "\n\r\n\r The  Address received \n\r\n\r");
-			               //unsigned char ascii_to_num[8]={0};
-			                 int i;
-			                    for ( i=0;i<sizeof(receive_command);i++)
-			                    {
-			                        if (receive_command[i]>= 48 && receive_command[i]<=57)
-			                        {
-			                            ascii_to_num[i]= receive_command[i]-'0';
-			                        }
-			                        else if (receive_command[i]>= 97 && receive_command[i]<=102)
-			                        {
-			                            ascii_to_num[i]= receive_command[i]-87;
-			                        }
-			                            else if (receive_command[i]>= 65 && receive_command[i]<=70)
-			                        {
-			                            ascii_to_num[i]= receive_command[i]-55;
-			                        }
-
-			                    }
+void UpdaterUART(void) {
+    char key = 0;
 
 
 
-			               /*
-			               UART_putString(UART, "\n\r\n\r");
-			               UART_putString(UART, " \n\r\n\r bit 7\n\r\n\r");
-			               UART_putString(UART,&receive_command[7]);
-			               UART_putString(UART, "\n\r\n\rbit 6\n\r\n\r");
-			               UART_putString(UART,&receive_command[6]);
-			               UART_putString(UART, "\n\r\n\rbit 5\n\r\n\r");
-			               UART_putString(UART,&receive_command[5]);
-			               UART_putString(UART, "\n\r\n\rbit 4\n\r\n\r");
-			               UART_putString(UART,&receive_command[4]);
-			               UART_putString(UART, "\n\r\n\rbit 3\n\r\n\r");
-			               UART_putString(UART,&receive_command[3]);
-			               UART_putString(UART, "\n\r\n\rbit 2\n\r\n\r");
-			               UART_putString(UART,&receive_command[2]);
-			               UART_putString(UART, "\n\r\n\rbit 1\n\r\n\r");
-			               UART_putString(UART,&receive_command[1]);
-			               UART_putString(UART, "\n\r\n\rbit 0\n\r\n\r");
-			               UART_putString(UART,&receive_command[0]);
-			               */
+    while (1) {
+        int delayCount = 0;
+        do {
+            TI_Fee_MainFunction();
+            delayCount++;
+            if (delayCount > 10000) { // timeout after trying this many times
+                printf("\r\nTI FEE error\r\n");
+                break;
+            }
+        } while (TI_Fee_GetStatus(0) != IDLE);
 
+        printf("\r\n================== Main Menu ==========================\r\n");
+        printf("  0. Set Application Start Address\r\n");
+        printf("  1. Upload New Application Binary\r\n");
+        printf("  2. Upload New Golden Binary\r\n");
+        printf("  3. Set next boot to Application \r\n");
+        printf("  4. Get Bootloader Version \r\n");
+        printf("  5. Get Device Information \r\n");
+        printf("  6. Set next boot to Golden image \r\n");
+        printf("  7. Upload CRC of application image \r\n");
+        printf("  8. Upload CRC of golden image \r\n");
+        printf("  9. Reboot\r\n");
+        printf("=======================================================\r\n\n");
 
-			               uint32_t address_num =   (uint32_t)ascii_to_num[0] << 28 |
-			                                        (uint32_t)ascii_to_num[1] << 24 |
-			                                        (uint32_t)ascii_to_num[2] << 20 |
-			                                        (uint32_t)ascii_to_num[3] << 16 |
-			                                        (uint32_t)ascii_to_num[4] << 12 |
-			                                        (uint32_t)ascii_to_num[5] << 8  |
-			                                        (uint32_t)ascii_to_num[6] << 4  |
-			                                        (uint32_t)ascii_to_num[7];
+        key = UART_getKey(UART);
 
-			                //uint32_t  *pstart_address;
-			                //pstart_address =&APP_START_ADDRESS;
+        if (key == '0') {
+            // Set Application Start Address
+            printf("Enter The Application Start Address \n\r\n\r");
+            sciReceive(UART, 10, &receive_command[0]);
+            printf("\n\r\n\r The Entered Address Is: ");
+            int c;
+            for (c = 0; c < 8; c++) {
+                printf("%c",receive_command[c]);
+            }
+            printf("\r\n");
 
-			                //*pstart_address=address_num;
-			                APP_START_ADDRESS=address_num;
-			                //UART_putString(UART, " \n\r\n\r The Address is updated. \n\r\n\r");
-			                //UART_putString(UART,APP_START_ADDRESS);
-			                printf("%d",APP_START_ADDRESS);
+           uint32_t address_num;
+           if (true) {
+               address_num = 0x00200020;
+               image_info app_info;
+               app_info = eeprom_get_app_info();
+               app_info.addr = address_num;
+               app_info.crc = 0x7398;
+               eeprom_set_app_info(app_info);
+           }
+        }
 
-			                if (image_num <=1 )
-			                {
-			                image_num_arr[image_num] = address_num;
-			                image_num= image_num+1;
-			                }
+        else if (key == '1') {
+            // Upload New Application Binary
+            image_info app_info = {0};
+            app_info = eeprom_get_app_info();
+            int size;
 
+            if (app_info.addr != 0) {
+                size = UART_Download(app_info.addr);
+                if (size) {
+                    app_info.size = size;
+                    app_info.exists = 1;
+                    eeprom_set_app_info(app_info);
+                }
+            } else printf("Set application address before flashing");
+        }
 
+        else if (key == '2') {
+            // Upload New Golden Binary
+            image_info app_info = {0};
+            app_info = eeprom_get_golden_info();
+            int size;
 
-			                 /*
-			               UART_putString(UART, " \n\r\n\r The Address is Received. \n\r\n\r");
+            if (app_info.addr != 0) {
+                size = UART_Download(app_info.addr);
+                if (size) {
+                    app_info.size = size;
+                    eeprom_set_golden_info(app_info);
+                }
+            } else printf("Set Golden Image address before flashing");
+		}
 
-			                cint32_2_char[7]= ( char) ((APP_START_ADDRESS & 0x0000000F)    );
-			                cint32_2_char[6]= ( char) ((APP_START_ADDRESS & 0x000000F0)>>4 );
-			                cint32_2_char[5]= ( char) ((APP_START_ADDRESS & 0x00000F00)>>8 );
-			                cint32_2_char[4]= ( char) ((APP_START_ADDRESS & 0x0000F000)>>12);
-			                cint32_2_char[3]= ( char) ((APP_START_ADDRESS & 0x000F0000)>>16);
-			                cint32_2_char[2]= ( char) ((APP_START_ADDRESS & 0x00F00000)>>20);
-			                cint32_2_char[1]= ( char) ((APP_START_ADDRESS & 0x0F000000)>>24);
-			                cint32_2_char[0]= ( char) ((APP_START_ADDRESS & 0xF0000000)>>28);
-			                */
+        else if (key == '3') {
+            // Set next boot to Application
 
-			                /*
-			                cint32_2_char[7]= 9;
-			                cint32_2_char[6]= 8;
-			                cint32_2_char[5]= 7;
-			                cint32_2_char[4]= 6;
-			                cint32_2_char[3]= 5;
-			                cint32_2_char[2]= 4;
-			                cint32_2_char[1]= 3;
-			                cint32_2_char[0]= 2;
-			                */
+            if (verify_application()) {
+                printf("CRC passed, Next Boot set to Application\r\n");
+                eeprom_set_boot_type('A');
+            } else {
+                printf("CRC failed, next boot unchanged\r\n");
+            }
+        }
 
-			                /*
-			                UART_putString(UART, " \n\r\n\r The Address is converted to unsigned char. \n");
-			                //cint32_2_char[7]=7;
-			                UART_putString(UART,cint32_2_char);
-			                //UART_putString(UART,receive_command);
-			                UART_putString(UART, " \n\r\n\r last line \n\r\n\r");
-			                */
+        else if (key == '4') {
+            get_software_Version();
+        }
 
-			            }
+        else if (key == '5') {
+            get_hardware_Info();
+        }
 
+        else if (key == '6') {
+            // Set next boot to Golden image
+            if (verify_golden()) {
+                printf("CRC passed, Next Boot set to Golden Image\r\n");
+                eeprom_set_boot_type('G');
+            } else {
+                printf("CRC failed, next boot unchanged\r\n");
+            }
+        }
 
-			else if (key == 0x31)
-			{
-
-
-
-        	    write_count=write_count+1;
-			   /* Download user application in the Flash */
-			    if ( (write_count>=3)  &&  (APP_START_ADDRESS==image_num_arr[1]) &&  ((*(uint32_t *) APP_STATUS_ADDRESS)==0x5A5A5A5A)  )
-			     {
-			     UART_putString(UART, "The golden image is already written, overwrite is prevented !! \n\r\n\r");
-			     break;
-			     }
-			    else
-			    {
-			        UART_Download();
-			    }
-
-
-
-			}
-		    else if (key == 0x32)
-		    {
-		      /* Upload user application from the Flash */
-		      UART_Upload();
-		    }
-			else if (key == 0x33)
-			{
-			    crc_out= crc16( (char*)image_num_arr[0] , size_WI);
-
-			    if (crc_out== crc_WI)
-			    {
-				UART_putString(UART, "working image CRC passed, it is running now !! \n\r\n\r");
-		        JumpAddress = (uint32_t)image_num_arr[0];
-		        ((void (*)(void))JumpAddress)();
-			    }
-			    else
-			    {
-			    UART_putString(UART, "working image CRC failed, the golden image is running instead !! \n\r\n\r");
-			    JumpAddress = (uint32_t)image_num_arr[1];
-			    ((void (*)(void))JumpAddress)();
-
-			    }
-			}
-			else if (key == 0x34)
-			{
-				get_software_Version();
-			}
-			else if (key == 0x35)
-			{
-				get_hardware_Info();
-			}
-            else if (key == 0x36)
-            {
-                // single blinky LED address= 0x00200020, size= 16372 bytes
-                 crc_out= crc16( (char*)image_num_arr[1], size_GI);
-                // single blinky LED 0x00200020, 16372
-                 if (crc_out= crc_GI)
-                 {
-                 UART_putString(UART, "CRC passed, golden image is running !! \n\r\n\r");
-                 JumpAddress = (uint32_t)image_num_arr[1];
-                 ((void (*)(void))JumpAddress)();
-                 }
-                 else{
-
-                     UART_putString(UART, "golden image CRC failed, the working image is running instead !! \n\r\n\r");
-                     JumpAddress = (uint32_t)image_num_arr[0];
-                     ((void (*)(void))JumpAddress)();
-                 }
+        else if (key == '7') {
+            // Upload CRC of application image
+            printf("Enter application CRC (hex): ");
+            sciReceive(UART, 4, &receive_command[0]);
+            int i;
+            for (i = 0; i < 4; i++) {
+                if (receive_command[i] >= 48 && receive_command[i] <= 57) {
+                    ascii_to_num[i] = receive_command[i]-'0';
+                }
+                else if (receive_command[i] >= 97 && receive_command[i] <= 102) {
+                    ascii_to_num[i] = receive_command[i]-87;
+                }
+                    else if (receive_command[i] >= 65 && receive_command[i] <= 70) {
+                    ascii_to_num[i] = receive_command[i]-55;
+                }
             }
 
-            else if (key == 0x37)
-                   {
-                       // single blinky LED 0x00200020, 16372
-                   crc_out= crc16( (char*) image_num_arr[0], size_WI);
-                   printf("CRC of working image  :0x%X\n",crc_out);
-                   UART_putString(UART, "CRC of working image is calculated, please check the CSS console \n\r\n\r");
-                   }
+           uint16_t crc_num =   (uint32_t)ascii_to_num[0] << 12 |
+                                (uint32_t)ascii_to_num[1] << 8  |
+                                (uint32_t)ascii_to_num[2] << 4  |
+                                (uint32_t)ascii_to_num[3];
+           image_info app_info = eeprom_get_app_info();
+           app_info.crc = crc_num;
+           eeprom_set_app_info(app_info);
+        }
 
-            else if (key == 0x38)
-                   {
-                       // single blinky LED 0x00200020, 16372
-                   crc_out= crc16( (char*) image_num_arr[1], size_GI);
+        else if (key == '8') {
+           //Upload CRC of golden image
+           // Upload CRC of application image
+           printf("Enter Golden Image CRC (hex): ");
+           sciReceive(UART, 4, &receive_command[0]);
+           int i;
+           for (i = 0; i < 4; i++) {
+               if (receive_command[i] >= 48 && receive_command[i] <= 57) {
+                   ascii_to_num[i] = receive_command[i]-'0';
+               }
+               else if (receive_command[i] >= 97 && receive_command[i] <= 102) {
+                   ascii_to_num[i] = receive_command[i]-87;
+               }
+                   else if (receive_command[i] >= 65 && receive_command[i] <= 70) {
+                   ascii_to_num[i] = receive_command[i]-55;
+               }
+           }
 
-                   printf("CRC of golden image  :0x%X\n",crc_out);
-                   UART_putString(UART, "CRC of golden image is calculated, please check the CSS console \n\r\n\r");
-                   }
-			else
-			{
-				UART_putString(UART, "Invalid Number !! \n\r\n\r");
-			}
-	  }
+          uint16_t crc_num =   (uint32_t)ascii_to_num[0] << 12 |
+                               (uint32_t)ascii_to_num[1] << 8  |
+                               (uint32_t)ascii_to_num[2] << 4  |
+                               (uint32_t)ascii_to_num[3];
+          image_info gold_info = eeprom_get_golden_info();
+          gold_info.crc = crc_num;
+          eeprom_set_golden_info(gold_info);
+        }
+
+        else if (key == '9') {
+            // Reboot
+            printf("Rebooting...\r\n");
+            eeprom_shutdown();
+            systemREG1->SYSECR = (0x10) << 14;
+            break;
+        }
+
+        else {
+           printf("Invalid Number !! \n\r\n\r");
+        }
+    }
 }
-
-
-unsigned short crc16( char *ptr, int count)
-{
-   int  crc;
-   char i;
-   crc = 0;
-   while (--count >= 0)
-   {
-      crc = crc ^  ( ((int)*ptr)  << 8  ) ;
-      ptr=ptr+1;
-      i = 8;
-      do
-      {
-         if (crc & 0x8000)
-            crc = (crc << 1) ^ 0x1021;
-         else
-            crc = crc << 1;
-      } while(--i);
-   }
-   return (crc);
-}
-
 
 #endif
-
+#endif
 

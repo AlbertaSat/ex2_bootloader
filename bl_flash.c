@@ -23,7 +23,6 @@
 //*****************************************************************************
 
 #define _L2FMC
-extern long long int APP_START_ADDRESS;
 #include "bl_config.h"
 #include "bl_flash.h"
 #include "F021.h"
@@ -75,25 +74,25 @@ BLInternalFlashSizeGet(void)
 uint32_t
 BLInternalFlashStartAddrCheck(uint32_t ulAddr, uint32_t ulImgSize)
 {
-    uint32_t count=0, i;
-
-	uint32_t ulWholeFlashSize;
+//    uint32_t count=0, i;
+//
+//	uint32_t ulWholeFlashSize;
 
     //
     // Determine the size of the flash available on the part in use.
     //
-    ulWholeFlashSize = (uint32_t)flash_sector[NUMBEROFSECTORS-1].start + flash_sector[NUMBEROFSECTORS-1].length;  /* 3MB */
+//    ulWholeFlashSize = (uint32_t)flash_sector[NUMBEROFSECTORS-1].start + flash_sector[NUMBEROFSECTORS-1].length;  /* 3MB */
 
 	/* The start address must be at the begining of the sector */
-    for (i = 0; i < NUMBEROFSECTORS; i++){
-		if ((ulAddr >= (uint32_t)(flash_sector[i].start)) && (ulAddr < ((uint32_t)flash_sector[i].start + flash_sector[i].length)))
-		{
-			count++;
-		}
-	}
-    if (count == 0){
-    	return(0);
-    }
+//    for (i = 0; i < NUMBEROFSECTORS; i++){
+//		if ((ulAddr >= (uint32_t)(flash_sector[i].start)) && (ulAddr < ((uint32_t)flash_sector[i].start + flash_sector[i].length)))
+//		{
+//			count++;
+//		}
+//	}
+//    if (count == 0){
+//    	return(0);
+//    }
 
     //
     // Is the address we were passed a valid start address?  We allow:
@@ -107,24 +106,25 @@ BLInternalFlashStartAddrCheck(uint32_t ulAddr, uint32_t ulImgSize)
     // size is larger than the available space or if the address is not word
     // aligned.
     //
-    if((
+//    if((
 #ifdef ENABLE_BL_UPDATE
                        (ulAddr != 0) &&
 #endif
-                        (ulAddr != APP_START_ADDRESS)) ||
-                       ((ulAddr + ulImgSize) > ulWholeFlashSize) ||
-                       ((ulAddr & 3) != 0))
-    {
-    	return(0);
-    }
-    else  {
-        return(1);
-    }
+//                        (ulAddr != APP_START_ADDRESS)) ||
+//                       ((ulAddr + ulImgSize) > ulWholeFlashSize) ||
+//                       ((ulAddr & 3) != 0))
+//    {
+//    	return(0);
+//    }
+//    else  {
+//        return(1);
+//    }
+
 }
 
 
 //#pragma CODE_SECTION (Fapi_BlockErase, ".myTest")
-uint32_t Fapi_BlockErase( uint32_t Bank, uint32_t ulAddr, uint32_t Size)
+uint32_t Fapi_BlockErase(uint32_t ulAddr, uint32_t Size)
 {
 	uint8_t  i=0, ucStartBank, ucEndBank, ucStartSector, ucEndSector;
     uint32_t EndAddr, status;

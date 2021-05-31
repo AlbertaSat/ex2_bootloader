@@ -97,6 +97,7 @@ uint32_t Str2Int(unsigned char *inputstr, int *intnum)
       res = 0;
     }
   }
+
   else /* max 10-digit decimal input */
   {
     for (i = 0;i < 11;i++)

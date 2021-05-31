@@ -49,6 +49,13 @@
 
 
 /* USER CODE BEGIN (0) */
+void _undef(void);
+
+void _svc (void);
+
+void _prefetch (void);
+
+void _dabort (void);
 /* USER CODE END */
 
 
@@ -78,8 +85,12 @@ extern int main(void);
 /*SAFETYMCUSW 354 S MR:NA <APPROVED> " Startup code(Extern declaration present in the library)" */
 extern void exit(int _status);
 
+extern unsigned int FlashApi_LoadSize;
+extern unsigned int FlashApi_LoadStart;
+extern unsigned int FlashApi_RunStart;
 
 /* USER CODE BEGIN (3) */
+void load(char *load,char *start, unsigned int size);
 /* USER CODE END */
 void handlePLLLockFail(void);
 /* Startup Routine */
@@ -223,6 +234,11 @@ void _c_int00(void)
         case SW_RESET:
 		
 /* USER CODE BEGIN (20) */
+            _coreEnableEventBusExport_();
+            systemInit();
+            _coreEnableIrqVicOffset_();
+            vimInit();
+            esmInit();
 /* USER CODE END */
         break;
     
@@ -250,6 +266,8 @@ void _c_int00(void)
         /* initialize global variable and constructors */
     __TI_auto_init();
 /* USER CODE BEGIN (26) */
+    load((char *)&FlashApi_LoadStart, (char *)&FlashApi_RunStart, (unsigned int)&FlashApi_LoadSize);
+
 /* USER CODE END */
     
         /* call the application */
@@ -269,6 +287,14 @@ void _c_int00(void)
 }
 
 /* USER CODE BEGIN (29) */
+void load(char *load,char *start, unsigned int size)
+{ do
+  {
+    *start = *load;
+    start++;
+    load++;
+  } while (--size);
+}
 /* USER CODE END */
 
 /** @fn void handlePLLLockFail(void)
@@ -288,4 +314,27 @@ void handlePLLLockFail(void)
 /* USER CODE END */
 }
 /* USER CODE BEGIN (33) */
+#pragma CODE_STATE(_undef, 32)
+#pragma INTERRUPT(_c_int00, UDEF)
+void _undef(void) {
+    while(1);
+}
+
+#pragma CODE_STATE(_svc, 32)
+#pragma INTERRUPT(_c_int00, DABT)
+void _svc (void) {
+    while(1);
+}
+#pragma CODE_STATE(_prefetch, 32)
+#pragma INTERRUPT(_c_int00, PABT)
+void _prefetch (void) {
+    while(1);
+}
+
+#pragma CODE_STATE(_dabort, 32)
+#pragma INTERRUPT(_c_int00, DABT)
+void _dabort (void) {
+    while(1);
+}
+
 /* USER CODE END */

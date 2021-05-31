@@ -37,34 +37,62 @@
 ***********************************************************************************************************/
 
 #include "bl_config.h"
-long long int APP_START_ADDRESS= 0x00200020;
-#if defined (CAN_ENABLE_UPDATE)
-
-#include "bl_can.h"
-#include "HL_can.h"
-#endif
-
-#if defined (SPI_ENABLE_UPDATE)
-#include "bl_spi.h"
-#include "HL_spi.h"
-#endif
 
 #if defined (UART_ENABLE_UPDATE)
-#include "bl_uart.h"
+//#include "bl_uart.h"
 #endif
 
 #include "HL_system.h"
-#include "bl_check.h"
 #include "sci_common.h"
 #include "HL_rti.h"
 #include "HL_gio.h"
+#include "ti_fee.h"
+#include "bl_eeprom.h"
+#include "bl_launch.h"
+
+
+#include "bl_config.h"
+#include "HL_sci.h"
+#include "bl_uart.h"
+#include "sci_common.h"
+#include "bl_ymodem.h"
+#include "HL_sys_common.h"
+#include "printf.h"
+#include "bl_launch.h"
+#include "bl_eeprom.h"
+#include "HL_reg_system.h"
+#include "ti_fee.h"
+
+unsigned short crc16 (char *ptr, int count);
+
+uint32_t JumpAddress;
+void get_software_Version(void);
+void get_hardware_Info(void);
+void load(char *load,char *start, unsigned int size);
+
+
+
+extern char fileName[FILENAME_LEN];
+char tab_1024[1024] = {    0  };
+
+uint8_t receive_command[10]={0};  //format maybe #0x12345678$
+uint32_t address_num=0;
+
+int crc_GI= 0xB371;
+int crc_WI= 0x4D07;
+int size_WI= 16564;
+int size_GI= 16372;
+int crc_out;
+int write_count=0;
+//uint8_t cint32_2_char[8]={0};
+unsigned char ascii_to_num[8]={0};
+int image_num=0;
+uint32_t image_num_arr[2]={0};
 
 
 /*****************************************************************************
 * bl_main
 ******************************************************************************/
-#if defined (SPI_ENABLE_UPDATE) || defined(UART_ENABLE_UPDATE) || defined(CAN_ENABLE_UPDATE)
-
 /*****************************************************************************
 *
 * This holds the current remaining size in bytes to be downloaded.
@@ -95,9 +123,6 @@ uint32_t g_pulDataBuffer[BUFFER_SIZE];
 * image's version etc
 ******************************************************************************/
 
-uint32_t g_pulUpdateSuccess[] = {0x5A5A5A5A, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0};
-uint32_t g_ulUpdateStatusAddr = APP_STATUS_ADDRESS;
-
 uint32_t g_ulUpdateBufferSize = 32; /*32 bytes or 8 32-bit words*/
 
 #define E_PASS     		0
@@ -113,137 +138,261 @@ uint32_t g_ulUpdateBufferSize = 32; /*32 bytes or 8 32-bit words*/
 ******************************************************************************/
 uint8_t *g_pucDataBuffer;
 
-/*****************************************************************************
-*
-* This holds the current address that is being written to during a download
-* command.
-*
-******************************************************************************/
 void delay(unsigned int delayval) {
 	  while(delayval--);
 }
+//*****************************************************************************
+//
+//  bl_uart_api
+//
+//
+//*****************************************************************************
+/**
+  * @brief  Download a file via serial port
+  * @param  None
+  * @retval None
+  */
+int UART_Download(uint32_t address) {
+    char Number[10] = "          ";
+    int Size = 0;
+
+    printf("\n\r Waiting for the file to be sent ... ");
+    printf("\n\r Use the ymodem protocol in your chosen serial terminal \n\r");
+    eeprom_shutdown();
+    Size = Ymodem_Receive(UART, &tab_1024[0], address);
+    eeprom_init();
+    if (Size > 0) {
+        printf("\n\r The application image has been programmed successfully!\n\r---------------------------\n\r Name: ");
+        printf(fileName);
+        Int2Str(Number, Size);
+        printf("\n\n\r Size:     ");
+        printf(Number);
+        printf("  Bytes\n\r");
+        printf("---------------------------\n\n\n\n\r");
+    } else {
+        printf("\n\rFailed to receive tconstRunStarthe file!\n\r");
+    }
+    return Size;
+}
+
+bool start_application(void);
+void start_golden();
+
+void main(void) {
 
 
-void main(void)
-{
-    uint32_t fnRetValue;
+    uint8_t bootType = 'G'; // default to golden image as it is the easiest to use reliably
 
-    /* Initialize RTI driver */
-    gioInit();
-    gioSetDirection(gioPORTB, 0xFFFF);
+    bool feeInit = false;
+    // Initialize FEE driver and check required boot status
+    feeInit = eeprom_init();
 
-    /*Enable RTI to check if interrupt affect flash erase/program*/
-    rtiInit();
-    /* Enable RTI Compare 0 interrupt notification */
-    //rtiEnableNotification(rtiREG1,rtiNOTIFICATION_COMPARE0);
+    image_info gold_program = eeprom_get_golden_info();
+    gold_program.addr = GOLD_DEFAULT_ADDR;
+    //gold_program.exists = 0;
+    //gold_program.size = 0;
+    //gold_program.crc = 0;
 
-    /* Enable IRQ - Clear I flag in CPS register */
-    /* Note: This is usually done by the OS or in an svc dispatcher */
-    //_enable_IRQ_interrupt_();
+    eeprom_set_golden_info(gold_program);
 
-    /* Start RTI Counter Block 0 */
-    //rtiStartCounter(rtiREG1,rtiCOUNTER_BLOCK0);
+    if (feeInit)
+        bootType = eeprom_get_boot_type();
+
+
+    bootType = 'B';
+    switch(bootType) {
+    case 'A': start_application(); // no break to automatically attempt start golden on failure
+    case 'G': start_golden(); break;
+    case 'B':
+    default: break;
+    }
+
+    // if we make it here the golden image didn't work
 
     /* Initialize SCI Routines to receive Command and transmit data */
 	sciInit();
 
-#if defined (SPI_ENABLE_UPDATE)
-	UART_putString(UART, "\r Hercules MCU SPI BootLoader ");
-#endif
-#if defined (CAN_ENABLE_UPDATE)
-	UART_putString(UART, "\r Hercules MCU CAN BootLoader ");
-#endif
-#if defined (UART_ENABLE_UPDATE)
-	UART_putString(UART, "\r Hercules MCU UART BootLoader ");
-#endif
+	//UpdaterUART();
+    char key = 0;
 
-	UART_putString(UART, "\r TI Safety MCU Application Team, qjwang@ti.com \r\r");
+    while (1) {
+        int delayCount = 0;
+        do {
+            TI_Fee_MainFunction();
+            delayCount++;
+            if (delayCount > 10000) { // timeout after trying this many times
+                printf("\r\nTI FEE error\r\n");
+                break;
+            }
+        } while (TI_Fee_GetStatus(0) != IDLE);
 
-	//
-	//  See if an update should be performed.
-	//
-    fnRetValue = CheckForceUpdate();
+        printf("\r\n================== Main Menu ==========================\r\n");
+        printf("  0. Set Application Start Address\r\n");
+        printf("  1. Upload New Application Binary\r\n");
+        printf("  2. Upload New Golden Binary\r\n");
+        printf("  3. Set next boot to Application \r\n");
+        printf("  4. Get Bootloader Version \r\n");
+        printf("  5. Get Device Information \r\n");
+        printf("  6. Set next boot to Golden image \r\n");
+        printf("  7. Upload CRC of application image \r\n");
+        printf("  8. Upload CRC of golden image \r\n");
+        printf("  9. Reboot\r\n");
+        printf("=======================================================\r\n\n");
 
-    if ( !fnRetValue )
-    {
-#ifdef DEBUG_MSG
-    	UART_putString(UART, "\r Jump to application...  ");
-#endif
-        g_ulTransferAddress = (uint32_t)APP_START_ADDRESS;
-        ((void (*)(void))g_ulTransferAddress)();
+        key = UART_getKey(UART);
+
+        if (key == '0') {
+            // Set Application Start Address
+            printf("Enter The Application Start Address in Hex. Format: 0xNNNNNNNN\n\r\n\r");
+            sciReceive(UART, 10, &receive_command[0]);
+            printf("\n\r\n\r The Entered Address Is: ");
+            int c;
+            for (c = 0; c < 10; c++) {
+                printf("%c",receive_command[c]);
+            }
+            printf("\r\n");
+
+           uint32_t address_num;
+           if (Str2Int(receive_command, &address_num)) {
+               image_info app_info;
+               app_info = eeprom_get_app_info();
+               app_info.addr = address_num;
+               app_info.crc = 0x7398;
+               eeprom_set_app_info(app_info);
+           }
+        }
+
+        else if (key == '1') {
+            // Upload New Application Binary
+            image_info app_info = {0};
+            app_info = eeprom_get_app_info();
+            app_info.exists = 199;
+            eeprom_set_app_info(app_info);
+            int size;
+
+            if (app_info.addr != 0) {
+                size = UART_Download(app_info.addr);
+                if (size) {
+
+                    app_info.size = size;
+                    app_info.exists = 1;
+                    eeprom_set_app_info(app_info);
+                }
+            } else printf("Set application address before flashing");
+        }
+
+        else if (key == '2') {
+            // Upload New Golden Binary
+            image_info app_info = {0};
+            app_info = eeprom_get_golden_info();
+            int size;
+
+            if (app_info.addr != 0) {
+                size = UART_Download(app_info.addr);
+                if (size) {
+
+                    app_info.size = size;
+                    app_info.exists = 1;
+                    eeprom_set_golden_info(app_info);
+                }
+            } else printf("Set Golden Image address before flashing");
+        }
+
+        else if (key == '3') {
+            // Set next boot to Application
+
+            if (verify_application()) {
+                printf("CRC passed, Next Boot set to Application\r\n");
+                eeprom_set_boot_type('A');
+            } else {
+                printf("CRC failed, next boot unchanged\r\n");
+            }
+        }
+
+        else if (key == '4') {
+            get_software_Version();
+        }
+
+        else if (key == '5') {
+            get_hardware_Info();
+        }
+
+        else if (key == '6') {
+            // Set next boot to Golden image
+            if (verify_golden()) {
+                printf("CRC passed, Next Boot set to Golden Image\r\n");
+                eeprom_set_boot_type('G');
+            } else {
+                printf("CRC failed, next boot unchanged\r\n");
+            }
+        }
+
+        else if (key == '7') {
+            // Upload CRC of application image
+            printf("Enter application CRC (hex): ");
+            sciReceive(UART, 4, &receive_command[0]);
+            int i;
+            for (i = 0; i < 4; i++) {
+                if (receive_command[i] >= 48 && receive_command[i] <= 57) {
+                    ascii_to_num[i] = receive_command[i]-'0';
+                }
+                else if (receive_command[i] >= 97 && receive_command[i] <= 102) {
+                    ascii_to_num[i] = receive_command[i]-87;
+                }
+                    else if (receive_command[i] >= 65 && receive_command[i] <= 70) {
+                    ascii_to_num[i] = receive_command[i]-55;
+                }
+            }
+
+           uint16_t crc_num =   (uint32_t)ascii_to_num[0] << 12 |
+                                (uint32_t)ascii_to_num[1] << 8  |
+                                (uint32_t)ascii_to_num[2] << 4  |
+                                (uint32_t)ascii_to_num[3];
+           image_info app_info = eeprom_get_app_info();
+           app_info.crc = crc_num;
+           eeprom_set_app_info(app_info);
+        }
+
+        else if (key == '8') {
+           //Upload CRC of golden image
+           printf("Enter Golden Image CRC (hex): ");
+           sciReceive(UART, 4, &receive_command[0]);
+           int i;
+           for (i = 0; i < 4; i++) {
+               if (receive_command[i] >= 48 && receive_command[i] <= 57) {
+                   ascii_to_num[i] = receive_command[i]-'0';
+               }
+               else if (receive_command[i] >= 97 && receive_command[i] <= 102) {
+                   ascii_to_num[i] = receive_command[i]-87;
+               }
+                   else if (receive_command[i] >= 65 && receive_command[i] <= 70) {
+                   ascii_to_num[i] = receive_command[i]-55;
+               }
+           }
+
+          uint16_t crc_num =   (uint32_t)ascii_to_num[0] << 12 |
+                               (uint32_t)ascii_to_num[1] << 8  |
+                               (uint32_t)ascii_to_num[2] << 4  |
+                               (uint32_t)ascii_to_num[3];
+          image_info gold_info = eeprom_get_golden_info();
+          gold_info.crc = crc_num;
+          eeprom_set_golden_info(gold_info);
+        }
+
+        else if (key == '9') {
+            // Reboot
+            printf("Rebooting...\r\n");
+            eeprom_shutdown();
+            systemREG1->SYSECR = (0x10) << 14;
+            break;
+        }
+
+        else {
+           printf("Invalid Number !! \n\r\n\r");
+        }
     }
-
-    //
-	//  Configure the microcontroller.
-	//
-	//EnterBootLoader
-	#ifdef CAN_ENABLE_UPDATE
-	    ConfigureCANDevice(CAN_PORT);
-	#endif
-	#ifdef SPI_ENABLE_UPDATE
-	    ConfigureSPIDevice(SPI_PORT);
-	#endif
-	#ifdef UART_ENABLE_UPDATE
-	    ConfigureUartDevice();
-	#endif
-
-	//
-	// Branch to the update handler. Use can1
-	//
-	#ifdef CAN_ENABLE_UPDATE
-	    UpdaterCAN(CAN_PORT);
-	#endif
-
-	#ifdef UART_ENABLE_UPDATE
-	    UpdaterUART();
-	#endif
-	#ifdef SPI_ENABLE_UPDATE
-	    UpdaterSPI(SPI_PORT);
-	#endif
-
 }
 
 
-/******************************************************************************
-*
-* Configures the microcontroller.
-*
-* This function configures the peripherals and GPIOs of the microcontroller,
-* preparing it for use by the boot loader.  The interface that has been
-* selected as the update port will be configured, and auto-baud will be
-* performed if required.
-*
-* \return None.
-*
-******************************************************************************/
-#ifdef SPI_ENABLE_UPDATE
-void ConfigureSPIDevice(spiBASE_t *node)
-{
-    //
-    // Initialize the SPI1 as slave mode
-    // Enable the SPI interface in slave mode.
-    // Set the SPI protocol to Motorola with default clock high and data valid on the rising edge.
-    //
-    spiInit();
-}
-#endif
 
-#ifdef UART_ENABLE_UPDATE
-void ConfigureUartDevice(void)
-{
-    //
-    // Enable the the clocks to the UART and GPIO modules.
-    //
-   sciInit();
-}
-#endif
-
-
-void rtiNotification(rtiBASE_t *rtiREG, uint32 notification)
-{
-/*  enter user code between the USER CODE BEGIN and USER CODE END. */
-    gioSetBit(gioPORTB, 7, gioGetBit(gioPORTB, 7) ^ 1);
-}
-
-#endif
 

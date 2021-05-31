@@ -81,6 +81,8 @@
 
 #include "bl_config.h"
 
+#include "bl_eeprom.h"
+
 #if defined(UART_ENABLE_UPDATE)
 #include "sci_common.h"
 #include "bl_flash.h"
@@ -88,26 +90,23 @@
 #include "bl_ymodem.h"
 #include "HL_sys_common.h"
 //#include "sys_pmu.h"
-extern long long int APP_START_ADDRESS;
+//extern long long int APP_START_ADDRESS;
 char fileName[FILENAME_LEN];
-extern unsigned int g_pulUpdateSuccess[8];
-extern unsigned int g_ulUpdateStatusAddr;
-extern uint32_t g_ulUpdateBufferSize;          //32 bytes or 8 32-bit words
+
 extern void delay(unsigned int delayval);
 
-
-int Ymodem_Receive (sciBASE_t *sci, char *buf)
+int Ymodem_Receive (sciBASE_t *sci, char *buf, uint32_t address)
 {
 	unsigned char packet_data[PACKET_1K_SIZE + PACKET_HEADER + PACKET_CRC]={NULL};
 	unsigned char fileSize[FILESIZE_LEN], *pFile;
 	char *pcBuf;
 	int i, file_done, packets_received, errors, imageSize = 0, key;
 	unsigned int oReturnCheck;
-	unsigned char ucBank=1;
+	unsigned char ucBank = address <= 0x00200000 ? 0 : 1;
     unsigned short packet_size, loop=1;
-    unsigned int FlashDestination = APP_START_ADDRESS ;            /* Flash user program offset */
+    unsigned int FlashDestination = address; /* Flash user program offset */
 
-	g_pulUpdateSuccess[1] = FlashDestination;
+	//g_pulUpdateSuccess[1] = FlashDestination;
 	enum rcvstates              // states when receiving
 	{
 	     AskHeader,             // ask for a header
@@ -134,10 +133,10 @@ int Ymodem_Receive (sciBASE_t *sci, char *buf)
 		{
 			switch (state)
 			{
-				/* The receiver starts by sending an “C” (0x43) to the sender indicating it wishes
-				 * to use the CRC method of block validating. After sending the initial “C” the receiver waits
+				/* The receiver starts by sending an ï¿½Cï¿½ (0x43) to the sender indicating it wishes
+				 * to use the CRC method of block validating. After sending the initial ï¿½Cï¿½ the receiver waits
 				 * for either a 3 second time out or until a buffer full flag is set. If the receiver is
-				 * timed out then another “C” is sent to the sender and the 3 second time out starts again.
+				 * timed out then another ï¿½Cï¿½ is sent to the sender and the 3 second time out starts again.
 				 * This process continues until the receiver receives a complete 133-byte or 1029-byte packet.
 				 */
 				case AskHeader:
@@ -272,7 +271,7 @@ int Ymodem_Receive (sciBASE_t *sci, char *buf)
 						}
 						fileSize[i++] = '\0';
 						Str2Int(fileSize, &imageSize);
-						g_pulUpdateSuccess[2] = (uint32_t) imageSize;
+						//g_pulUpdateSuccess[2] = (uint32_t) imageSize;
 						/* Test the size of the image to be sent */
 						/* Image size is greater than Flash size */
 						/* Erase the FLASH pages */
@@ -282,7 +281,8 @@ int Ymodem_Receive (sciBASE_t *sci, char *buf)
 						}
 						/* Initialize the Flash Wrapper registers */
 						oReturnCheck = 0;
-						oReturnCheck = Fapi_BlockErase( ucBank, FlashDestination, imageSize);
+						// CRASH HERE
+						oReturnCheck = Fapi_BlockErase(FlashDestination, imageSize);
 						// Return an error if an access violation occurred.
 						if(oReturnCheck)
 						{
@@ -322,7 +322,7 @@ int Ymodem_Receive (sciBASE_t *sci, char *buf)
 
 	if( errors == 0)
     {
-    	oReturnCheck = Fapi_BlockProgram( ucBank, g_ulUpdateStatusAddr, (unsigned long)&g_pulUpdateSuccess, g_ulUpdateBufferSize);
+    	//oReturnCheck = Fapi_BlockProgram( ucBank, g_ulUpdateStatusAddr, (unsigned long)&g_pulUpdateSuccess, g_ulUpdateBufferSize);
     }
 	return (int)imageSize;
 }

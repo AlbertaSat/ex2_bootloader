@@ -78,14 +78,23 @@ SECTIONS
 /* USER CODE BEGIN (5) */
 /* USER CODE END */
     .intvecs : {} > VECTORS
-    .text   align(32) : {} > FLASH0 | FLASH1
-    .const  align(32) : {} > FLASH0 | FLASH1
-    .cinit  align(32) : {} > FLASH0 | FLASH1
-    .pinit  align(32) : {} > FLASH0 | FLASH1
+    flashAPI :
+    {
+        Fapi_UserDefinedFunctions.obj (.text)
+        bl_flash.obj (.text)
+        --library = ../lib/F021_API_CortexR4_BE_L2FMC_V3D16.lib (.text)
+    } load=FLASH0, run=RAM, LOAD_START(FlashApi_LoadStart), SIZE(FlashApi_LoadSize), RUN_START(FlashApi_RunStart)
+    .text   align(32) : {} > FLASH0
+    .const  align(32) : {} > FLASH0
+    .cinit  align(32) : {} > FLASH0
+    .pinit  align(32) : {} > FLASH0
     .bss     : {} > RAM
     .data    : {} > RAM
     .sysmem  : {} > RAM
 	
+    FEE_TEXT_SECTION  : {} > FLASH0
+    FEE_CONST_SECTION : {} > FLASH0
+    FEE_DATA_SECTION  : {} > RAM
 
 /* USER CODE BEGIN (6) */
 /* USER CODE END */

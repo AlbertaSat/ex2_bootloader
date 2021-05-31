@@ -42,6 +42,10 @@
 ; import reference for interrupt routines
 
     .ref _c_int00
+    .ref _undef
+    .ref _svc
+    .ref _prefetch
+    .ref _dabort
     .ref phantomInterrupt
     .def resetEntry
 
@@ -50,14 +54,10 @@
 
 resetEntry
         b   _c_int00
-undefEntry
-        b   undefEntry
-svcEntry
-        b   svcEntry
-prefetchEntry
-        b   prefetchEntry
-dataEntry
-        b   dataEntry
+        b   _undef
+        b   _svc
+        b   _prefetch
+        b   _dabort
         b   phantomInterrupt
         ldr pc,[pc,#-0x1b0]
         ldr pc,[pc,#-0x1b0]

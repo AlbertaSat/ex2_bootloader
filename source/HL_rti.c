@@ -789,7 +789,7 @@ void rtiCompare0Interrupt(void)
 /* USER CODE END */
 
     rtiREG1->INTFLAG = 1U;
-    rtiNotification(rtiREG1,rtiNOTIFICATION_COMPARE0);
+    //rtiNotification(rtiREG1,rtiNOTIFICATION_COMPARE0);
 
 /* USER CODE BEGIN (44) */
 /* USER CODE END */

@@ -38,7 +38,7 @@ extern uint32_t BLInternalFlashStartAddrCheck(uint32_t ulAddr, uint32_t ulImgSiz
 
 extern uint32_t Fapi_BlockProgram( uint32_t Bank, uint32_t Flash_Start_Address, uint32_t Data_Start_Address, uint32_t Size_In_Bytes);
 
-extern uint32_t Fapi_BlockErase( uint32_t Bank, uint32_t Flash_Start_Address, uint32_t Size_In_Bytes);
+extern uint32_t Fapi_BlockErase(uint32_t Flash_Start_Address, uint32_t Size_In_Bytes);
 
 extern uint32_t Fapi_UpdateStatusProgram( uint32_t Bank, uint32_t Flash_Start_Address, uint32_t Data_Start_Address, uint32_t Size_In_Bytes);
                                 

@@ -45,7 +45,7 @@
 #define MAX_ALLOWED_ERRORS            10
 
 char Ymodem_Transmit (sciBASE_t *sci, uint8_t *buf, char* fileName, uint32_t fileSize);
-int  Ymodem_Receive (sciBASE_t *sci, char *buf);
+int  Ymodem_Receive (sciBASE_t *sci, char *buf, uint32_t address);
 int _cal_crc16_(unsigned char*, int);
 
 #endif  /* _YMODEM_H_ */
