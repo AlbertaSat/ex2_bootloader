@@ -317,24 +317,32 @@ void handlePLLLockFail(void)
 #pragma CODE_STATE(_undef, 32)
 #pragma INTERRUPT(_c_int00, UDEF)
 void _undef(void) {
-    while(1);
+    while(1) {
+        systemREG1->SYSECR = (0x10) << 14;
+    }
 }
 
 #pragma CODE_STATE(_svc, 32)
 #pragma INTERRUPT(_c_int00, DABT)
 void _svc (void) {
-    while(1);
+    while(1) {
+        systemREG1->SYSECR = (0x10) << 14;
+    }
 }
 #pragma CODE_STATE(_prefetch, 32)
 #pragma INTERRUPT(_c_int00, PABT)
 void _prefetch (void) {
-    while(1);
+    while(1) {
+        systemREG1->SYSECR = (0x10) << 14;
+    }
 }
 
 #pragma CODE_STATE(_dabort, 32)
 #pragma INTERRUPT(_c_int00, DABT)
 void _dabort (void) {
-    while(1);
+    while(1) {
+        systemREG1->SYSECR = (0x10) << 14;
+    }
 }
 
 /* USER CODE END */
