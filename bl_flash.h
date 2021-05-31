@@ -26,6 +26,7 @@
 #define __BL_FLASH_H__
 
 #include "HL_sys_common.h"
+#include <stdbool.h>
 
 //*****************************************************************************
 //
@@ -34,7 +35,7 @@
 //*****************************************************************************
 extern uint32_t BLInternalFlashFirstSectorSizeGet(void);
 extern uint32_t BLInternalFlashSizeGet(void);
-extern uint32_t BLInternalFlashStartAddrCheck(uint32_t ulAddr, uint32_t ulImgSize);
+extern bool BLInternalFlashStartAddrCheck(uint32_t ulAddr, uint32_t ulImgSize);
 
 extern uint32_t Fapi_BlockProgram( uint32_t Bank, uint32_t Flash_Start_Address, uint32_t Data_Start_Address, uint32_t Size_In_Bytes);
 

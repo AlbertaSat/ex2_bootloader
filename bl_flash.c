@@ -68,58 +68,49 @@ BLInternalFlashSizeGet(void)
 //! This function checks to determine whether the given address is a valid
 //! download image start address given the options defined in bl_config.h.
 //!
-//! \return Returns non-zero if the address is valid or 0 otherwise.
+//! \return Returns true if the address is valid or false otherwise.
 //
 //*****************************************************************************
-uint32_t
+bool
 BLInternalFlashStartAddrCheck(uint32_t ulAddr, uint32_t ulImgSize)
 {
-//    uint32_t count=0, i;
-//
-//	uint32_t ulWholeFlashSize;
+    uint32_t count=0, i;
+
+	uint32_t ulWholeFlashSize;
+
+	if (ulImgSize == 0) {
+	    return false;
+	}
 
     //
     // Determine the size of the flash available on the part in use.
     //
-//    ulWholeFlashSize = (uint32_t)flash_sector[NUMBEROFSECTORS-1].start + flash_sector[NUMBEROFSECTORS-1].length;  /* 3MB */
+    ulWholeFlashSize = (uint32_t)flash_sector[NUMBEROFSECTORS-1].start + flash_sector[NUMBEROFSECTORS-1].length;
 
 	/* The start address must be at the begining of the sector */
-//    for (i = 0; i < NUMBEROFSECTORS; i++){
-//		if ((ulAddr >= (uint32_t)(flash_sector[i].start)) && (ulAddr < ((uint32_t)flash_sector[i].start + flash_sector[i].length)))
-//		{
-//			count++;
-//		}
-//	}
-//    if (count == 0){
-//    	return(0);
-//    }
+    for (i = 0; i < NUMBEROFSECTORS; i++){
+		if ((ulAddr >= (uint32_t)(flash_sector[i].start)) && (ulAddr < ((uint32_t)flash_sector[i].start + flash_sector[i].length)))
+		{
+			count++;
+		}
+	}
+    if (count == 0){
+    	return false;
+    }
 
-    //
     // Is the address we were passed a valid start address?  We allow:
-    //
-    // 1. Address 0 if configured to update the boot loader.
-    // 2. The start of the reserved block if parameter space is reserved (to
-    //    allow a download of the parameter block contents).
-    // 3. The application start address specified in bl_config.h.
-    //
-    // The function fails if the address is not one of these, if the image
-    // size is larger than the available space or if the address is not word
-    // aligned.
-    //
-//    if((
-#ifdef ENABLE_BL_UPDATE
-                       (ulAddr != 0) &&
-#endif
-//                        (ulAddr != APP_START_ADDRESS)) ||
-//                       ((ulAddr + ulImgSize) > ulWholeFlashSize) ||
-//                       ((ulAddr & 3) != 0))
-//    {
-//    	return(0);
-//    }
-//    else  {
-//        return(1);
-//    }
-
+    // Must be greater than GOLD_MINIMUM_ADDR
+    // If flashing to the golden image bank, the size of the image may not write higher than 0x00200000. Which is the start of bank 1
+    // if flashing to the application image bank, the image may not write higher than 0x003FFFFF. Which is the end of bank 1
+    if (ulAddr <= GOLD_MINIMUM_ADDR) {
+        return false;
+    } else if (ulAddr < APP_MINIMUM_ADDR  && ulAddr + ulImgSize <= 0x00200000) {
+        return true;
+    } else if (ulAddr >= APP_MINIMUM_ADDR && ulAddr + ulImgSize <= 0x003FFFFF) {
+        return true;
+    } else {
+        return false;
+    }
 }
 
 
