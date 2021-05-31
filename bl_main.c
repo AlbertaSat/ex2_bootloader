@@ -236,6 +236,8 @@ void main(void) {
         printf("  7. Upload CRC of application image \r\n");
         printf("  8. Upload CRC of golden image \r\n");
         printf("  9. Reboot\r\n");
+        printf("  A. Ping\r\n");
+        printf("  B. Erase application image\r\n");
         printf("=======================================================\r\n\n");
 
         key = UART_getKey(UART);
@@ -272,7 +274,6 @@ void main(void) {
             if (app_info.addr != 0) {
                 size = UART_Download(app_info.addr);
                 if (size) {
-
                     app_info.size = size;
                     app_info.exists = EXISTS_FLAG;
                     eeprom_set_app_info(app_info);
@@ -384,6 +385,19 @@ void main(void) {
             eeprom_shutdown();
             systemREG1->SYSECR = (0x10) << 14;
             break;
+        }
+
+        else if (key == 'A') {
+            printf("\r\nPing\r\n");
+        }
+
+        else if (key == 'B') {
+            image_info erase;
+            erase.crc = 0;
+            erase.exists = 0;
+            erase.address = 0;
+            erase.size = 0;
+            eeprom_set_app_info(erase);
         }
 
         else {
