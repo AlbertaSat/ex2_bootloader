@@ -395,7 +395,7 @@ void main(void) {
             image_info erase;
             erase.crc = 0;
             erase.exists = 0;
-            erase.address = 0;
+            erase.addr = 0;
             erase.size = 0;
             eeprom_set_app_info(erase);
         }
