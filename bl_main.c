@@ -53,7 +53,6 @@
 
 #include "bl_config.h"
 #include "HL_sci.h"
-#include "bl_uart.h"
 #include "sci_common.h"
 #include "bl_ymodem.h"
 #include "HL_sys_common.h"
