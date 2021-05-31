@@ -82,6 +82,8 @@
 // It contains Application Start Address, Application Image Size, etc
 //
 //*****************************************************************************
+#define EXISTS_FLAG 0xA5A5A5A5
+
 #define APP_STATUS_BLOCKNUMBER 2 // status byte reports 1 if program present
 #define APP_STATUS_OFFSET 0
 #define APP_STATUS_LEN sizeof(image_info)
@@ -101,7 +103,7 @@
 
 // Representation of data which will be stored in FEE flash
 typedef struct __attribute__((packed)) {
-    uint8_t exists; // 1 for exists, 0 for does not exist
+    uint32_t exists; // 1 for exists, 0 for does not exist
     uint32_t size;
     uint32_t addr;
     uint16_t crc;

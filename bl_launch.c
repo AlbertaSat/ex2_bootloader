@@ -35,7 +35,7 @@ void start_golden() {
 bool verify_application() {
     image_info app_info = {0};
     app_info = eeprom_get_app_info();
-    if (app_info.exists) {
+    if (app_info.exists == EXISTS_FLAG) {
         if (crc16((char *)app_info.addr, app_info.size) == app_info.crc) {
             return true;
         } else return false;
@@ -44,7 +44,7 @@ bool verify_application() {
 
 bool verify_golden() {
     image_info app_info = eeprom_get_golden_info();
-    if (app_info.exists) {
+    if (app_info.exists == EXISTS_FLAG) {
         if (crc16((char *)app_info.addr, app_info.size) == app_info.crc) {
             return true;
         } else return false;

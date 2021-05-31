@@ -274,7 +274,7 @@ void main(void) {
                 if (size) {
 
                     app_info.size = size;
-                    app_info.exists = 1;
+                    app_info.exists = EXISTS_FLAG;
                     eeprom_set_app_info(app_info);
                 }
             } else printf("Set application address before flashing");
@@ -291,7 +291,7 @@ void main(void) {
                 if (size) {
 
                     app_info.size = size;
-                    app_info.exists = 1;
+                    app_info.exists = EXISTS_FLAG;
                     eeprom_set_golden_info(app_info);
                 }
             } else printf("Set Golden Image address before flashing");
