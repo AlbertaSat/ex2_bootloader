@@ -76,16 +76,9 @@ BLInternalFlashStartAddrCheck(uint32_t ulAddr, uint32_t ulImgSize)
 {
     uint32_t count=0, i;
 
-	uint32_t ulWholeFlashSize;
-
 	if (ulImgSize == 0) {
 	    return false;
 	}
-
-    //
-    // Determine the size of the flash available on the part in use.
-    //
-    ulWholeFlashSize = (uint32_t)flash_sector[NUMBEROFSECTORS-1].start + flash_sector[NUMBEROFSECTORS-1].length;
 
 	/* The start address must be at the begining of the sector */
     for (i = 0; i < NUMBEROFSECTORS; i++){
