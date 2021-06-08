@@ -23,7 +23,7 @@
 //*****************************************************************************
 
 #define _L2FMC
-#include "bl_config.h"
+#include "bl_eeprom.h"
 #include "bl_flash.h"
 #include "F021.h"
 #include "flash_defines.h"

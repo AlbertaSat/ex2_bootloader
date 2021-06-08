@@ -2,7 +2,21 @@
 #ifndef __FLASH_DEFINES_H__
 #define __FLASH_DEFINES_H__
 
-#include "bl_config.h"
+//*****************************************************************************
+//
+// The frequency (MHz) of the crystal used to clock the microcontroller.
+//
+// This defines the crystal frequency used by the microcontroller running the
+// boot loader.
+//
+// Depends on: None
+// Exclusive of: None
+// Requires: None
+//
+//*****************************************************************************
+#define   TMS570LC43
+#define CRYSTAL_FREQ            16             //MHz
+#define SYS_CLK_FREQ            150            //MHz
 
 //The device name is defined in bl_config.h
 
