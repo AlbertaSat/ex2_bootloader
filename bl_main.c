@@ -62,14 +62,9 @@
 #include "HL_reg_system.h"
 #include "ti_fee.h"
 
-unsigned short crc16 (char *ptr, int count);
-
 uint32_t JumpAddress;
 void get_software_Version(void);
 void get_hardware_Info(void);
-void load(char *load,char *start, unsigned int size);
-
-
 
 extern char fileName[FILENAME_LEN];
 char tab_1024[1024] = {    0  };

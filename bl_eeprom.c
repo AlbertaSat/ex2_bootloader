@@ -5,8 +5,8 @@
  *      Author: Robert Taylor
  */
 
+#include "bl_eeprom.h"
 #include "ti_fee.h"
-#include "bl_config.h"
 
 // Returns false on failure
 bool eeprom_init() {

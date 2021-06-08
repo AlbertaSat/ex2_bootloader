@@ -29,7 +29,6 @@ void start_golden() {
         eeprom_shutdown();
         ((void (*)(void))JumpAddress)();
     }
-    return false;
 }
 
 bool verify_application() {

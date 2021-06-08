@@ -27,8 +27,9 @@
 #include "bl_flash.h"
 #include "F021.h"
 #include "flash_defines.h"
+#include "F021_API/Helpers.h"
 
-//#define Freq_In_MHz = SYS_CLK_FREQ;
+//#define Freq_In_MHz = SYS_CLK_FRE#include "bl_config.h"Q;
 
 //*****************************************************************************
 //
