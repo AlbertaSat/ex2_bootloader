@@ -116,13 +116,13 @@ MEMORY
 {
 /* USER CODE BEGIN (2) */
 /* USER CODE END */
-    VECTORS (X)    : origin=0x00000000 length=0x00000040
-    BOOTFLASH (RX) : origin=0x00000040 length=0x00018000 - 0x40
-    FLASH0  (RX)   : origin=0x00018000 length=0x00200000 - 0x00018000 - 0x20
-    FLASH1  (RX)   : origin=0x00200000 length=0x00200000
-    STACKS  (RW)   : origin=0x08000000 length=0x00001500
-    RAM     (RW)   : origin=0x08001500 length=0x0007eb00 - 0x08
-    RAMINTVECS (RWX) : origin=0x0807FFF8 length=0x08
+    VECTORS (X)      : origin=0x00000000 length=0x00000040
+    BOOTFLASH (RX)   : origin=0x00000040 length=0x00018000 - 0x40
+    FLASH0  (RX)     : origin=0x00018000 length=0x00200000 - 0x00018000 - 0x20
+    FLASH1  (RX)     : origin=0x00200000 length=0x00200000
+    RAMINTVECS (RWX) : origin=0x08000000 length=0x00000020
+    STACKS  (RW)     : origin=end(RAMINTVECS) length=0x00001500
+    RAM     (RW)     : origin=end(STACKS) length=0x0007eb00 - 0x08
 }
 
 /*----------------------------------------------------------------------------*/

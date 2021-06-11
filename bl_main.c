@@ -182,7 +182,7 @@ void main(void) {
     feeInit = eeprom_init();
 
     image_info gold_program = eeprom_get_golden_info();
-    gold_program.addr = GOLD_DEFAULT_ADDR;
+    //gold_program.addr = GOLD_DEFAULT_ADDR;
     //gold_program.exists = 0;
     //gold_program.size = 0;
     //gold_program.crc = 0;
@@ -192,8 +192,6 @@ void main(void) {
     if (feeInit)
         bootType = eeprom_get_boot_type();
 
-
-    bootType = 'B';
     switch(bootType) {
     case 'A': start_application(); // no break to automatically attempt start golden on failure
     case 'G': start_golden(); break;

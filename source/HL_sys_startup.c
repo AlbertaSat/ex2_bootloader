@@ -255,9 +255,7 @@ extern unsigned int ramint_RunStart;*/
         break;
     }
 
-/* USER CODE BEGIN (22) */extern unsigned int ramint_LoadSize;
-extern unsigned int ramint_LoadStart;
-extern unsigned int ramint_RunStart;
+/* USER CODE BEGIN (22) */
 /* USER CODE END */
 
     _mpuInit_();
@@ -338,7 +336,7 @@ void _undef(void) {
 #pragma INTERRUPT(_c_int00, SWI)
 void _svc (void) {
     while(1) {
-        systemREG1->SYSECR = (0x10) << 14;
+        systemREG1->SYSECR = (0x10) << 14; // we should never end up here. behavior is undefined so reset
     }
 }
 #pragma CODE_STATE(_prefetch, 32)

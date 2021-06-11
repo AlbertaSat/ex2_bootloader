@@ -43,6 +43,7 @@
 
     .ref _c_int00
     .ref _undef
+    .ref ramSWI
     .ref _prefetch
     .ref _dabort
     .ref phantomInterrupt
@@ -54,7 +55,7 @@
 resetEntry
         b   _c_int00
         b   _undef
-        ldr pc, tab_swi
+        b   ramSWI
         b   _prefetch
         b   _dabort
         b   phantomInterrupt
@@ -63,20 +64,3 @@ resetEntry
 
     
 ;-------------------------------------------------------------------------------
-; Table with the addresses of the vectors in the SRAM
-tab_swi  .word ram_swi
-;-------------------------------------------------------------------------------
-; Table in RAM
-	.sect ".ramIntvecs"
-	.retain ".ramIntvecs"
-	.arm
-
-    .ref _svc
-
-ram_swi:
-	ldr pc, ram_tab_swi
-;-------------------------------------------------------------------------------
-; Table with the addresses of the exception handlers
-ram_tab_swi: .word _svc
-;-------------------------------------------------------------------------------
-
