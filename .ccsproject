@@ -11,6 +11,6 @@
 	<createSlaveProjects value=""/>
 	<templateProperties value="id=com.ti.common.project.core.emptyProjectTemplate,"/>
 	<filesToOpen value=""/>
-	<isTargetManual value="false"/>
+	<isTargetManual value="true"/>
 	<origin value="/home/robert/Documents/AbSat/Final_bootloader/v1"/>
 </projectOptions>
