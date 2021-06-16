@@ -75,57 +75,60 @@ void sciInit(void)
 /* USER CODE BEGIN (2) */
 /* USER CODE END */
 
-    /** @b initialize @b SCI1 */
 
-    /** - bring SCI1 out of reset */
-    sciREG1->GCR0 = 0U;
-    sciREG1->GCR0 = 1U;
+
+
+    /** @b initialize @b SCI3 */
+
+    /** - bring SCI3 out of reset */
+    sciREG3->GCR0 = 0U;
+    sciREG3->GCR0 = 1U;
 
     /** - Disable all interrupts */
-    sciREG1->CLEARINT    = 0xFFFFFFFFU;
-    sciREG1->CLEARINTLVL = 0xFFFFFFFFU;
+    sciREG3->CLEARINT    = 0xFFFFFFFFU;
+    sciREG3->CLEARINTLVL = 0xFFFFFFFFU;
 
     /** - global control 1 */
-    sciREG1->GCR1 =  (uint32)((uint32)1U << 25U)  /* enable transmit */
+    sciREG3->GCR1 =  (uint32)((uint32)1U << 25U)  /* enable transmit */
                   | (uint32)((uint32)1U << 24U)  /* enable receive */
                   | (uint32)((uint32)1U << 5U)   /* internal clock (device has no clock pin) */
-                  | (uint32)((uint32)(2U-1U) << 4U)  /* number of stop bits */
+                  | (uint32)((uint32)(1U-1U) << 4U)  /* number of stop bits */
                   | (uint32)((uint32)0U << 3U)  /* even parity, otherwise odd */
                   | (uint32)((uint32)0U << 2U)  /* enable parity */
                   | (uint32)((uint32)1U << 1U);  /* asynchronous timing mode */
 
     /** - set baudrate */
-    sciREG1->BRS = 40U;  /* baudrate */
+    sciREG3->BRS = 40U;  /* baudrate */
 
     /** - transmission length */
-    sciREG1->FORMAT = 8U - 1U;  /* length */
+    sciREG3->FORMAT = 8U - 1U;  /* length */
 
-    /** - set SCI1 pins functional mode */
-    sciREG1->PIO0 = (uint32)((uint32)1U << 2U)  /* tx pin */
+    /** - set SCI3 pins functional mode */
+    sciREG3->PIO0 = (uint32)((uint32)1U << 2U)  /* tx pin */
                  | (uint32)((uint32)1U << 1U); /* rx pin */
 
-    /** - set SCI1 pins default output value */
-    sciREG1->PIO3 = (uint32)((uint32)0U << 2U)  /* tx pin */
+    /** - set SCI3 pins default output value */
+    sciREG3->PIO3 = (uint32)((uint32)0U << 2U)  /* tx pin */
                  | (uint32)((uint32)0U << 1U); /* rx pin */
 
-    /** - set SCI1 pins output direction */
-    sciREG1->PIO1 = (uint32)((uint32)0U << 2U)  /* tx pin */
+    /** - set SCI3 pins output direction */
+    sciREG3->PIO1 = (uint32)((uint32)0U << 2U)  /* tx pin */
                  | (uint32)((uint32)0U << 1U); /* rx pin */
 
-    /** - set SCI1 pins open drain enable */
-    sciREG1->PIO6 = (uint32)((uint32)0U << 2U)  /* tx pin */
+    /** - set SCI3 pins open drain enable */
+    sciREG3->PIO6 = (uint32)((uint32)0U << 2U)  /* tx pin */
                  | (uint32)((uint32)0U << 1U); /* rx pin */
 
-    /** - set SCI1 pins pullup/pulldown enable */
-    sciREG1->PIO7 = (uint32)((uint32)0U << 2U)  /* tx pin */
+    /** - set SCI3 pins pullup/pulldown enable */
+    sciREG3->PIO7 = (uint32)((uint32)0U << 2U)  /* tx pin */
                  | (uint32)((uint32)0U << 1U); /* rx pin */
 
-    /** - set SCI1 pins pullup/pulldown select */
-    sciREG1->PIO8 = (uint32)((uint32)1U << 2U)  /* tx pin */
+    /** - set SCI3 pins pullup/pulldown select */
+    sciREG3->PIO8 = (uint32)((uint32)1U << 2U)  /* tx pin */
                  | (uint32)((uint32)1U << 1U);  /* rx pin */
 
     /** - set interrupt level */
-    sciREG1->SETINTLVL = (uint32)((uint32)0U << 26U)  /* Framing error */
+    sciREG3->SETINTLVL = (uint32)((uint32)0U << 26U)  /* Framing error */
                       | (uint32)((uint32)0U << 25U)  /* Overrun error */
                       | (uint32)((uint32)0U << 24U)  /* Parity error */
                       | (uint32)((uint32)0U << 9U)  /* Receive */
@@ -134,7 +137,7 @@ void sciInit(void)
                       | (uint32)((uint32)0U << 0U);  /* Break detect */
 
     /** - set interrupt enable */
-    sciREG1->SETINT = (uint32)((uint32)0U << 26U)  /* Framing error */
+    sciREG3->SETINT = (uint32)((uint32)0U << 26U)  /* Framing error */
                    | (uint32)((uint32)0U << 25U)  /* Overrun error */
                    | (uint32)((uint32)0U << 24U)  /* Parity error */
                    | (uint32)((uint32)0U << 9U)  /* Receive */
@@ -142,15 +145,12 @@ void sciInit(void)
                    | (uint32)((uint32)0U << 0U);  /* Break detect */
 
     /** - initialize global transfer variables */
-    g_sciTransfer_t[0U].mode   = (uint32)0U << 8U;
-    g_sciTransfer_t[0U].tx_length = 0U;
-	g_sciTransfer_t[0U].rx_length = 0U;
+    g_sciTransfer_t[2U].mode   = (uint32)0U << 8U;
+    g_sciTransfer_t[2U].tx_length = 0U;
+	g_sciTransfer_t[2U].rx_length = 0U;
 
-    /** - Finaly start SCI1 */
-    sciREG1->GCR1 |= 0x80U;
-
-
-
+    /** - Finaly start SCI3 */
+    sciREG3->GCR1 |= 0x80U;
 
 
 
@@ -624,18 +624,20 @@ void sciExitResetState(sciBASE_t *sci)
 }
 
 
-/* SourceId : SCI_SourceId_018 */
+
+
+/* SourceId : SCI_SourceId_020 */
 /* DesignId : SCI_DesignId_016 */
-/* Requirements : HL_CONQ_SCI_SR23 */
-/** @fn void sci1GetConfigValue(sci_config_reg_t *config_reg, config_value_type_t type)
-*   @brief Get the initial or current values of the SCI1 configuration registers
+/* Requirements : HL_CONQ_SCI_SR25 */
+/** @fn void sci3GetConfigValue(sci_config_reg_t *config_reg, config_value_type_t type)
+*   @brief Get the initial or current values of the SCI3 configuration registers
 *
-*	@param[in] *config_reg: pointer to the struct to which the initial or current 
+*    @param[in] *config_reg: pointer to the struct to which the initial or current 
 *                           value of the configuration registers need to be stored
-*	@param[in] type: 	whether initial or current value of the configuration registers need to be stored
-*						- InitialValue: initial value of the configuration registers will be stored 
+*    @param[in] type:     whether initial or current value of the configuration registers need to be stored
+*                        - InitialValue: initial value of the configuration registers will be stored 
 *                                       in the struct pointed by config_reg
-*						- CurrentValue: initial value of the configuration registers will be stored 
+*                        - CurrentValue: initial value of the configuration registers will be stored 
 *                                       in the struct pointed by config_reg
 *
 *   This function will copy the initial or current value (depending on the parameter 'type') 
@@ -643,40 +645,38 @@ void sciExitResetState(sciBASE_t *sci)
 *
 */
 
-void sci1GetConfigValue(sci_config_reg_t *config_reg, config_value_type_t type)
+void sci3GetConfigValue(sci_config_reg_t *config_reg, config_value_type_t type)
 {
     if (type == InitialValue)
     {
-        config_reg->CONFIG_GCR0      = SCI1_GCR0_CONFIGVALUE;
-        config_reg->CONFIG_GCR1      = SCI1_GCR1_CONFIGVALUE;
-        config_reg->CONFIG_SETINT    = SCI1_SETINT_CONFIGVALUE;
-        config_reg->CONFIG_SETINTLVL = SCI1_SETINTLVL_CONFIGVALUE;
-        config_reg->CONFIG_FORMAT    = SCI1_FORMAT_CONFIGVALUE;
-        config_reg->CONFIG_BRS       = SCI1_BRS_CONFIGVALUE;
-        config_reg->CONFIG_PIO0      = SCI1_PIO0_CONFIGVALUE;
-        config_reg->CONFIG_PIO1      = SCI1_PIO1_CONFIGVALUE;
-        config_reg->CONFIG_PIO6      = SCI1_PIO6_CONFIGVALUE;
-        config_reg->CONFIG_PIO7      = SCI1_PIO7_CONFIGVALUE;
-        config_reg->CONFIG_PIO8      = SCI1_PIO8_CONFIGVALUE;    
+        config_reg->CONFIG_GCR0      = SCI3_GCR0_CONFIGVALUE;
+        config_reg->CONFIG_GCR1      = SCI3_GCR1_CONFIGVALUE;
+        config_reg->CONFIG_SETINT    = SCI3_SETINT_CONFIGVALUE;
+        config_reg->CONFIG_SETINTLVL = SCI3_SETINTLVL_CONFIGVALUE;
+        config_reg->CONFIG_FORMAT    = SCI3_FORMAT_CONFIGVALUE;
+        config_reg->CONFIG_BRS       = SCI3_BRS_CONFIGVALUE;
+        config_reg->CONFIG_PIO0      = SCI3_PIO0_CONFIGVALUE;
+        config_reg->CONFIG_PIO1      = SCI3_PIO1_CONFIGVALUE;
+        config_reg->CONFIG_PIO6      = SCI3_PIO6_CONFIGVALUE;
+        config_reg->CONFIG_PIO7      = SCI3_PIO7_CONFIGVALUE;
+        config_reg->CONFIG_PIO8      = SCI3_PIO8_CONFIGVALUE;    
     }
     else
     {
     /*SAFETYMCUSW 134 S MR:12.2 <APPROVED> "Register read back support" */
-        config_reg->CONFIG_GCR0      = sciREG1->GCR0;
-        config_reg->CONFIG_GCR1      = sciREG1->GCR1; 
-        config_reg->CONFIG_SETINT    = sciREG1->SETINT; 
-        config_reg->CONFIG_SETINTLVL = sciREG1->SETINTLVL; 
-        config_reg->CONFIG_FORMAT    = sciREG1->FORMAT; 
-        config_reg->CONFIG_BRS       = sciREG1->BRS; 
-        config_reg->CONFIG_PIO0      = sciREG1->PIO0; 
-        config_reg->CONFIG_PIO1      = sciREG1->PIO1; 
-        config_reg->CONFIG_PIO6      = sciREG1->PIO6; 
-        config_reg->CONFIG_PIO7         = sciREG1->PIO7;     
-        config_reg->CONFIG_PIO8      = sciREG1->PIO8; 
+        config_reg->CONFIG_GCR0      = sciREG3->GCR0;
+        config_reg->CONFIG_GCR1      = sciREG3->GCR1; 
+        config_reg->CONFIG_SETINT    = sciREG3->SETINT; 
+        config_reg->CONFIG_SETINTLVL = sciREG3->SETINTLVL; 
+        config_reg->CONFIG_FORMAT    = sciREG3->FORMAT; 
+        config_reg->CONFIG_BRS       = sciREG3->BRS; 
+        config_reg->CONFIG_PIO0      = sciREG3->PIO0; 
+        config_reg->CONFIG_PIO1      = sciREG3->PIO1; 
+        config_reg->CONFIG_PIO6      = sciREG3->PIO6; 
+        config_reg->CONFIG_PIO7      = sciREG3->PIO7;     
+        config_reg->CONFIG_PIO8      = sciREG3->PIO8; 
     }
 }
-
-
 
 
 

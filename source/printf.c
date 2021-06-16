@@ -119,7 +119,7 @@
 #endif
 
 void __putchar(char character) {
-    sciSendByte(sciREG1, character);
+    sciSendByte(sciREG3, character);
 }
 
 // output function type
