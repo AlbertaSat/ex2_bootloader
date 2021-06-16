@@ -57,12 +57,11 @@ MEMORY
 {
 /* USER CODE BEGIN (2) */
 /* USER CODE END */
-    VECTORS (X)    : origin=0x00000000 length=0x00000040
-    BOOTFLASH (RX) : origin=0x00000020 length=0x00018000 - 0x20
-    FLASH0  (RX)   : origin=0x00018000 length=0x00200000 - 0x00018000 - 0x20
-    FLASH1  (RX)   : origin=0x00200000 length=0x00200000
-    STACKS  (RW)   : origin=0x08000000 length=0x00001500
-    RAM     (RW)   : origin=0x08001500 length=0x0007eb00
+    VECTORS (X)  : origin=0x00000000 length=0x00000020
+    FLASH0  (RX) : origin=0x00000020 length=0x001FFFE0
+    FLASH1  (RX) : origin=0x00200000 length=0x00200000
+    STACKS  (RW) : origin=0x08000000 length=0x00001500
+    RAM     (RW) : origin=0x08001500 length=0x0007eb00
 
 /* USER CODE BEGIN (3) */
 /* USER CODE END */
@@ -79,16 +78,17 @@ SECTIONS
 {
 /* USER CODE BEGIN (5) */
 /* USER CODE END */
-    .text   align(32) : {} > BOOTFLASH
-    .const  align(32) : {} > BOOTFLASH
-    .cinit  align(32) : {} > BOOTFLASH
-    .pinit  align(32) : {} > BOOTFLASH
+    .intvecs : {} > VECTORS
+    .text   align(32) : {} > FLASH0 | FLASH1
+    .const  align(32) : {} > FLASH0 | FLASH1
+    .cinit  align(32) : {} > FLASH0 | FLASH1
+    .pinit  align(32) : {} > FLASH0 | FLASH1
     .bss     : {} > RAM
     .data    : {} > RAM
     .sysmem  : {} > RAM
 	
-    FEE_TEXT_SECTION  : {} > BOOTFLASH
-    FEE_CONST_SECTION : {} > BOOTFLASH
+    FEE_TEXT_SECTION  : {} > FLASH0 | FLASH1
+    FEE_CONST_SECTION : {} > FLASH0 | FLASH1
     FEE_DATA_SECTION  : {} > RAM
 
 /* USER CODE BEGIN (6) */
@@ -114,8 +114,6 @@ SECTIONS
 
 MEMORY
 {
-/* USER CODE BEGIN (2) */
-/* USER CODE END */
     VECTORS (X)      : origin=0x00000000 length=0x00000040
     BOOTFLASH (RX)   : origin=0x00000040 length=0x00018000 - 0x40
     FLASH0  (RX)     : origin=0x00018000 length=0x00200000 - 0x00018000 - 0x20

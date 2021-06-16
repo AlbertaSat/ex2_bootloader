@@ -30,9 +30,7 @@
 *    distribution.
 *
 *    Neither the name of Texas Instruments Incorporated nor the names of
-*    its contributors may be used textern unsigned int ramint_LoadSize;
-extern unsigned int ramint_LoadStart;
-extern unsigned int ramint_RunStart;o endorse or promote products derived
+*    its contributors may be used to endorse or promote products derived
 *    from this software without specific prior written permission.
 *
 *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS 
@@ -93,6 +91,7 @@ extern int main(void);
 /*SAFETYMCUSW 122 S MR:20.11 <APPROVED> "Startup code(exit and abort need to be present)" */
 /*SAFETYMCUSW 354 S MR:NA <APPROVED> " Startup code(Extern declaration present in the library)" */
 extern void exit(int _status);
+
 
 /* USER CODE BEGIN (3) */
 void load(char *load,char *start, unsigned int size);
@@ -190,9 +189,7 @@ void _c_int00(void)
         /* Enable IRQ offset via Vic controller */
         _coreEnableIrqVicOffset_();
             
-        /* Initialize VIM table extern unsigned int ramint_LoadSize;
-extern unsigned int ramint_LoadStart;
-extern unsigned int ramint_RunStart;*/
+        /* Initialize VIM table */
 	    vimInit();
 
 /* USER CODE BEGIN (12) */
@@ -285,9 +282,7 @@ extern unsigned int ramint_RunStart;*/
     main();
 /* USER CODE BEGIN (27) */
 /* USER CODE END */
-/*SAFETYMCUSW 122 S MR:20extern unsigned int ramint_LoadSize;
-extern unsigned int ramint_LoadStart;
-extern unsigned int ramint_RunStart;.11 <APPROVED> "Startup code(exit and abort need to be present)" */
+/*SAFETYMCUSW 122 S MR:20.11 <APPROVED> "Startup code(exit and abort need to be present)" */
     exit(0);
 
 
