@@ -13,8 +13,4 @@
 bool start_application();
 void start_golden();
 
-bool verify_application();
-
-bool verify_golden();
-
 #endif /* BL_LAUNCH_H_ */
