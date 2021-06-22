@@ -62,6 +62,11 @@
 #include "HL_reg_system.h"
 #include "ti_fee.h"
 
+#include "el_flash.h"
+#include "HL_het.h"
+#include "HL_gio.h"
+#include "HL_spi.h"
+
 uint32_t JumpAddress;
 void get_software_Version(void);
 void get_hardware_Info(void);
@@ -135,6 +140,8 @@ uint8_t *g_pucDataBuffer;
 void delay(unsigned int delayval) {
 	  while(delayval--);
 }
+
+
 //*****************************************************************************
 //
 //  bl_uart_api
@@ -187,7 +194,7 @@ void main(void) {
     //gold_program.size = 0;
     //gold_program.crc = 0;
 
-    eeprom_set_golden_info(gold_program);
+    //eeprom_set_golden_info(gold_program);
 
     if (feeInit)
         bootType = eeprom_get_boot_type();
@@ -204,7 +211,9 @@ void main(void) {
     /* Initialize SCI Routines to receive Command and transmit data */
 	sciInit();
 
-	//UpdaterUART();
+    gioSetDirection(hetPORT1, 0xFFFAFFFF); // set pins 16 and 18 to input
+    spiInit();
+
     char key = 0;
 
     while (1) {
@@ -231,6 +240,7 @@ void main(void) {
         printf("  9. Reboot\r\n");
         printf("  A. Ping\r\n");
         printf("  B. Erase application image\r\n");
+        printf("  E. Program electra FPGA\r\n");
         printf("=======================================================\r\n\n");
 
         key = UART_getKey(UART);
@@ -391,6 +401,11 @@ void main(void) {
             erase.addr = 0;
             erase.size = 0;
             eeprom_set_app_info(erase);
+        }
+
+        else if (key == 'E') {
+            do_flash_electra();
+
         }
 
         else {
