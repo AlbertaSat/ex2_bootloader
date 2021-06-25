@@ -172,25 +172,47 @@ int UART_Download(uint32_t address) {
 bool start_application(void);
 void start_golden();
 
-void main(void) {
+char get_boot_type(int rstsrc, boot_info *b_inf) {
 
+    char stored_boot_type = eeprom_get_boot_type();
 
-    uint8_t bootType = 'G'; // default to golden image as it is the easiest to use reliably
+    switch(rstsrc) {
+    case POWERON_RESET:
+        return stored_boot_type;
+    case DEBUG_RESET:
+    case EXT_RESET:
+        return 'B';
+    case SW_RESET:
+        if (b_inf->attempts >= 5) {
+            b_inf->attempts = 0;
+            if (stored_boot_type == 'A') {
+                return 'G';
+            } else {
+                return 'B';
+            }
+        } else {
+            b_inf->attempts += 1;
+            return stored_boot_type;
+        }
+    default:
+        return 'B';
+    }
+}
 
-    bool feeInit = false;
-    // Initialize FEE driver and check required boot status
-    feeInit = eeprom_init();
+void main(int rstsrc) {
+    char bootType;
+    bool fee_init = eeprom_init();
+    boot_info b_inf;
 
-    image_info gold_program = eeprom_get_golden_info();
-    //gold_program.addr = GOLD_DEFAULT_ADDR;
-    //gold_program.exists = 0;
-    //gold_program.size = 0;
-    //gold_program.crc = 0;
+    if (!fee_init) {
+        bootType = 'B'; // EEPROM didn't work, emergency mode
+    } else {
+        b_inf = eeprom_get_boot_info();
+        bootType = get_boot_type(rstsrc, &b_inf);
+    }
 
-    eeprom_set_golden_info(gold_program);
-
-    if (feeInit)
-        bootType = eeprom_get_boot_type();
+    b_inf.count += 1;
+    eeprom_set_boot_info(b_inf);
 
     switch(bootType) {
     case 'A': start_application(); // no break to automatically attempt start golden on failure
