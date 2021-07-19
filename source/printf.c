@@ -37,6 +37,8 @@
 
 #include "HL_sci.h"
 
+#include "bl_config.h"
+
 // define this globally (e.g. gcc -DPRINTF_INCLUDE_CONFIG_H ...) to include the
 // printf_config.h header file
 // default: undefined
@@ -119,7 +121,7 @@
 #endif
 
 void __putchar(char character) {
-    sciSendByte(sciREG3, character);
+    sciSendByte(UART, character);
 }
 
 // output function type

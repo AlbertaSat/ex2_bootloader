@@ -73,7 +73,7 @@
 
 
 /* UART is used in all the boot modes*/
-#define UART              sciREG3   /* Use UART port 1 for UART boot */
+#define UART              sciREG3   /* Use appropriate UART port */
 
 #define BUFFER_SIZE             64       /*words in the data buffer used for receiving packets*/
 
