@@ -226,7 +226,18 @@ void main(int rstsrc) {
     /* Initialize SCI Routines to receive Command and transmit data */
 	sciInit();
 
-	//UpdaterUART();
+	// Golden Image address cannot change in this version of the bootloader. as such,
+	// bootloader will reset golden image info if it is different from the default
+	image_info golden_info = {0};
+	golden_info = eeprom_get_golden_info();
+	if (golden_info.addr != GOLD_DEFAULT_ADDR) {
+	    golden_info.addr = GOLD_DEFAULT_ADDR;
+	    golden_info.size = 0;
+	    golden_info.crc = 0;
+	    golden_info.exists = 0;
+	    eeprom_set_golden_info(golden_info);
+	}
+
     char key = 0;
 
     while (1) {
@@ -281,11 +292,8 @@ void main(int rstsrc) {
         else if (key == '1') {
             // Upload New Application Binary
             image_info app_info = {0};
-            app_info = eeprom_get_app_info();
-            app_info.exists = 199;
-            eeprom_set_app_info(app_info);
             int size;
-
+            app_info = eeprom_get_app_info();
             if (app_info.addr != 0) {
                 size = UART_Download(app_info.addr);
                 if (size) {
