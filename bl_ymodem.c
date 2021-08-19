@@ -102,7 +102,7 @@ int Ymodem_Receive (sciBASE_t *sci, char *buf, uint32_t address)
 	char *pcBuf;
 	int i, file_done, packets_received, errors, imageSize = 0, key;
 	unsigned int oReturnCheck;
-	unsigned char ucBank = address <= 0x00200000 ? 0 : 1;
+	unsigned char ucBank = address < 0x00200000 ? 0 : 1;
     unsigned short packet_size, loop=1;
     unsigned int FlashDestination = address; /* Flash user program offset */
 

@@ -35,9 +35,13 @@
 #define BOOT_TYPE_OFFSET 0
 #define BOOT_TYPE_LEN 1
 
+#define BOOT_INFO_BLOCKNUMBER 4
+#define BOOT_INFO_OFFSET 0
+#define BOOT_INFO_LEN 8
+
 // Representation of data which will be stored in FEE flash
 typedef struct __attribute__((packed)) {
-    uint32_t exists; // 1 for exists, 0 for does not exist
+    uint32_t exists; // EXISTS_FLAG for exists, else does not exist
     uint32_t size;
     uint32_t addr;
     uint16_t crc;
@@ -49,6 +53,12 @@ typedef enum SW_RESET_REASON {
     PREFETCH;
     REQUESTED;
 };
+
+// Representation of data which will be stored in FEE flash
+typedef struct __attribute__((packed)) {
+    uint32_t count; // total number of boot attempts
+    uint32_t attempts; // total attempts since last failure
+} boot_info;
 
 // Representation of data which will be stored in FEE flash
 typedef struct __attribute__((packed)) {
@@ -75,6 +85,10 @@ image_info eeprom_get_app_info();
 void eeprom_set_golden_info(image_info i);
 
 image_info eeprom_get_golden_info();
+
+boot_info eeprom_get_boot_info();
+
+void eeprom_set_boot_info(boot_info b);
 
 bool verify_application();
 
