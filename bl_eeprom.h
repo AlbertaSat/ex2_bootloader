@@ -43,6 +43,23 @@ typedef struct __attribute__((packed)) {
     uint16_t crc;
 } image_info;
 
+typedef enum SW_RESET_REASON {
+    NONE;
+    DABORT;
+    PREFETCH;
+    REQUESTED;
+};
+
+// Representation of data which will be stored in FEE flash
+typedef struct __attribute__((packed)) {
+    uint32_t exists; // 1 for exists, 0 for does not exist
+    uint32_t size;
+    uint32_t addr;
+    uint16_t crc;
+} boot_reason;
+
+void reboot(SW_RESET_REASON reason);
+
 bool eeprom_init();
 
 void eeprom_shutdown();

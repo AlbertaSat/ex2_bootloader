@@ -10,6 +10,10 @@
 
 unsigned short crc16();
 
+void reboot(SW_RESET_REASON reason) {
+
+}
+
 // Returns false on failure
 bool eeprom_init() {
     int delayCount = 0;
