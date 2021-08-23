@@ -133,6 +133,17 @@ const Fee_BlockConfigType Fee_BlockConfiguration[TI_FEE_NUMBER_OF_BLOCKS] =
                /* Number of DataSets                    */     1U,			   
                /* EEP number                            */     0U			   
         }
+        ,
+        /*      Block 4 */
+        {
+               /* Block number                          */     4U, 
+               /* Block size                            */     64U,
+               /* Block immediate data used             */     TRUE,			   
+               /* Number of write cycles                */     0x8U,
+               /* Device Index                          */     0x00000000U,
+               /* Number of DataSets                    */     1U,			   
+               /* EEP number                            */     0U			   
+        }
 		,
 		/* If project needs more than 16 blocks, add additional blocks here and also 
            modify TI_FEE_TOTAL_BLOCKS_DATASETS and TI_FEE_NUMBER_OF_BLOCKS in ti_fee_cfg.h 	*/

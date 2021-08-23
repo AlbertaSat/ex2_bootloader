@@ -10,8 +10,14 @@
 
 unsigned short crc16();
 
-void reboot(SW_RESET_REASON reason) {
-
+void sw_reset(SW_RESET_REASON reason) {
+    boot_info info;
+    eeprom_init();
+    info = eeprom_get_boot_info();
+    info.reason.swr_reason =  reason;
+    eeprom_set_boot_info(info);
+    eeprom_shutdown();
+    systemREG1->SYSECR = (0x10) << 14;
 }
 
 // Returns false on failure

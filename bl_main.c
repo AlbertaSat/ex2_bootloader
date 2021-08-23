@@ -49,8 +49,6 @@
 #include "ti_fee.h"
 #include "bl_eeprom.h"
 #include "bl_launch.h"
-
-
 #include "bl_config.h"
 #include "HL_sci.h"
 #include "sci_common.h"
@@ -132,6 +130,8 @@ uint32_t g_ulUpdateBufferSize = 32; /*32 bytes or 8 32-bit words*/
 ******************************************************************************/
 uint8_t *g_pucDataBuffer;
 
+void bl_main(resetSource_t rstsrc);
+
 void delay(unsigned int delayval) {
 	  while(delayval--);
 }
@@ -199,7 +199,11 @@ char get_boot_type(int rstsrc, boot_info *b_inf) {
     }
 }
 
-void main(int rstsrc) {
+void main() {
+    bl_main(NO_RESET);
+}
+
+void bl_main(resetSource_t rstsrc) {
     char bootType;
     bool fee_init = eeprom_init();
     boot_info b_inf;
@@ -212,10 +216,15 @@ void main(int rstsrc) {
     }
 
     b_inf.count += 1;
+    b_inf.reason.rstsrc = rstsrc;
+    if (rstsrc != SW_RESET) {
+        b_inf.reason.swr_reason = NONE;
+    }
     eeprom_set_boot_info(b_inf);
 
     switch(bootType) {
     case 'A': start_application(); // no break to automatically attempt start golden on failure
+    /* no break */
     case 'G': start_golden(); break;
     case 'B':
     default: break;

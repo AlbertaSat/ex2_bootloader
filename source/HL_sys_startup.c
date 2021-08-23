@@ -70,6 +70,7 @@ void _dabort (void);
 #include "HL_errata_SSWF021_45.h"
 
 /* USER CODE BEGIN (1) */
+#include "bl_eeprom.h"
 extern unsigned int ramint_LoadSize;
 extern unsigned int ramint_LoadStart;
 extern unsigned int ramint_RunStart;
@@ -87,13 +88,14 @@ extern unsigned int FlashApi_RunStart;
 /*SAFETYMCUSW 218 S MR:20.2 <APPROVED> "Functions from library" */
 extern void __TI_auto_init(void);
 /*SAFETYMCUSW 354 S MR:NA <APPROVED> " Startup code(main should be declared by the user)" */
-extern int main(int);
+extern int main();
 /*SAFETYMCUSW 122 S MR:20.11 <APPROVED> "Startup code(exit and abort need to be present)" */
 /*SAFETYMCUSW 354 S MR:NA <APPROVED> " Startup code(Extern declaration present in the library)" */
 extern void exit(int _status);
 
 
 /* USER CODE BEGIN (3) */
+extern int bl_main(resetSource_t rstSrc);
 void load(char *load,char *start, unsigned int size);
 /* USER CODE END */
 void handlePLLLockFail(void);
@@ -281,13 +283,15 @@ void _c_int00(void)
     load((char *)&FlashApi_LoadStart, (char *)&FlashApi_RunStart, (unsigned int)&FlashApi_LoadSize);
     load((char *)&ramint_LoadStart, (char *)&ramint_RunStart, (unsigned int)&ramint_LoadSize);
     int rstsrc = rstSrc;
+    bl_main(rstSrc);
+    sw_reset(REQUESTED);
 /* USER CODE END */
     
         /* call the application */
 /*SAFETYMCUSW 296 S MR:8.6 <APPROVED> "Startup code(library functions at block scope)" */
 /*SAFETYMCUSW 326 S MR:8.2 <APPROVED> "Startup code(Declaration for main in library)" */
 /*SAFETYMCUSW 60 D MR:8.8 <APPROVED> "Startup code(Declaration for main in library;Only doing an extern for the same)" */
-    main(rstsrc);
+    main();
 /* USER CODE BEGIN (27) */
 /* USER CODE END */
 /*SAFETYMCUSW 122 S MR:20.11 <APPROVED> "Startup code(exit and abort need to be present)" */
@@ -339,14 +343,14 @@ void _undef(void) {
 #pragma INTERRUPT(_c_int00, SWI)
 void _svc (void) {
     while(1) {
-        systemREG1->SYSECR = (0x10) << 14; // we should never end up here. behavior is undefined so reset
+        sw_reset(PREFETCH); // we should never end up here. behavior is undefined so reset
     }
 }
 #pragma CODE_STATE(_prefetch, 32)
 #pragma INTERRUPT(_c_int00, PABT)
 void _prefetch (void) {
     while(1) {
-        systemREG1->SYSECR = (0x10) << 14;
+        sw_reset(PREFETCH);
     }
 }
 
@@ -354,7 +358,7 @@ void _prefetch (void) {
 #pragma INTERRUPT(_c_int00, DABT)
 void _dabort (void) {
     while(1) {
-        systemREG1->SYSECR = (0x10) << 14;
+        sw_reset(DABORT);
     }
 }
 
