@@ -6,8 +6,8 @@
  */
 
 #include "bl_launch.h"
-#include "bl_config.h"
 #include <stdbool.h>
+#include <system.h>
 #include "bl_eeprom.h"
 
 bool start_application(void) {

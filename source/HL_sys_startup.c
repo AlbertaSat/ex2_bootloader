@@ -88,7 +88,7 @@ extern unsigned int FlashApi_RunStart;
 /*SAFETYMCUSW 218 S MR:20.2 <APPROVED> "Functions from library" */
 extern void __TI_auto_init(void);
 /*SAFETYMCUSW 354 S MR:NA <APPROVED> " Startup code(main should be declared by the user)" */
-extern int main();
+extern int main(void);
 /*SAFETYMCUSW 122 S MR:20.11 <APPROVED> "Startup code(exit and abort need to be present)" */
 /*SAFETYMCUSW 354 S MR:NA <APPROVED> " Startup code(Extern declaration present in the library)" */
 extern void exit(int _status);
@@ -270,6 +270,8 @@ void _c_int00(void)
 /* USER CODE BEGIN (23) */
 /* USER CODE END */
 
+    _cacheEnable_();
+
 /* USER CODE BEGIN (24) */
 /* USER CODE END */
 
@@ -280,9 +282,12 @@ void _c_int00(void)
         /* initialize global variable and constructors */
     __TI_auto_init();
 /* USER CODE BEGIN (26) */
+    // Must disable cache before writing program code to RAM or the cpu will fail to execute that code
+    _cacheDisable_();
     load((char *)&FlashApi_LoadStart, (char *)&FlashApi_RunStart, (unsigned int)&FlashApi_LoadSize);
     load((char *)&ramint_LoadStart, (char *)&ramint_RunStart, (unsigned int)&ramint_LoadSize);
     int rstsrc = rstSrc;
+    _cacheEnable_();
     bl_main(rstSrc);
     sw_reset(REQUESTED);
 /* USER CODE END */

@@ -23,13 +23,12 @@
 //*****************************************************************************
 
 /* Include Files */
-#include "bl_config.h"
+#include <system.h>
 
 #if defined (UART_ENABLE_UPDATE)
 #include "HL_sys_common.h"
 #include "HL_system.h"
 #include "HL_sci.h"
-#include "sci_common.h"
 #include "printf.h"
 
 
@@ -45,7 +44,7 @@
 */
 void get_software_Version(void)
 {
-	printf("\n\r BootLoader Version: V2.0 \n\r" );
+	printf("\n\r BootLoader Version: V3.0 \n\r" );
 	return;
 }
 
@@ -66,13 +65,13 @@ void get_hardware_Info(void)
 	printf("\r\n Device Information: \r\n");
 
 	printf("DEV:  ");
-	UART_send32BitData(UART, systemREG1->DEVID);
+	//UART_send32BitData(UART, systemREG1->DEVID);
 	printf("  \r\n ");
 	printf("LOT NUM:  ");
-	UART_send32BitData(UART, LOT_NUM);
+	//UART_send32BitData(UART, LOT_NUM);
 	printf(" \r\n ");
 	printf("WAFER LOC NUM:  ");
-	UART_send32BitData(UART, (WAFER_LOC_NUM));
+	//UART_send32BitData(UART, (WAFER_LOC_NUM));
 	printf(" \n\n\r\n ");
 
 	return;

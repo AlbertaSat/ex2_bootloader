@@ -137,6 +137,12 @@ typedef volatile struct eqepBASE
 */
 #define eqepREG1 ((eqepBASE_t *)0xFCF79900U)
 
+/** @def eqepREG2
+*   @brief eQEP2 Register Frame Pointer
+*
+*   This pointer is used by the eQEP driver to access the eQEP2 registers.
+*/
+#define eqepREG2 ((eqepBASE_t *)0xFCF79A00U)
 
 /* USER CODE BEGIN (1) */
 /* USER CODE END */

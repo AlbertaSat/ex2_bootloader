@@ -28,6 +28,7 @@
 #include "F021.h"
 #include "flash_defines.h"
 #include "F021_API/Helpers.h"
+#include "F021_API/Compatibility.h"
 
 //#define Freq_In_MHz = SYS_CLK_FRE#include "bl_config.h"Q;
 

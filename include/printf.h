@@ -41,7 +41,7 @@
  * \param character Character to output
  */
 #define putchar __putchar
-void __putchar(char character);
+int __putchar(int character);
 
 /**
  * Tiny printf implementation

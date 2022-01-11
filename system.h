@@ -1,32 +1,6 @@
-//*****************************************************************************
-//
-// bl_config.h - The configurable parameters of the boot loader.
-// Author    : QJ Wang. qjwang@ti.com
-
-// Copyright (c) 2008-2011 Texas Instruments Incorporated.  All rights reserved.
-// Software License Agreement
-// 
-// Texas Instruments (TI) is supplying this software for use solely and
-// exclusively on TI's microcontroller products. The software is owned by
-// TI and/or its suppliers, and is protected under applicable copyright
-// laws. You may not combine this software with "viral" open-source
-// software in order to form a larger program.
-// 
-// THIS SOFTWARE IS PROVIDED "AS IS" AND WITH ALL FAULTS.
-// NO WARRANTIES, WHETHER EXPRESS, IMPLIED OR STATUTORY, INCLUDING, BUT
-// NOT LIMITED TO, IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-// A PARTICULAR PURPOSE APPLY TO THIS SOFTWARE. TI SHALL NOT, UNDER ANY
-// CIRCUMSTANCES, BE LIABLE FOR SPECIAL, INCIDENTAL, OR CONSEQUENTIAL
-// DAMAGES, FOR ANY REASON WHATSOEVER.
-// 
-//
-//*****************************************************************************
-
 #ifndef __BL_CONFIG_H__
 #define __BL_CONFIG_H__
-
-#include <stdint.h>
-#include "bl_eeprom.h"
+#include "subsystems_ids.h"
 
 //*****************************************************************************
 //
@@ -46,15 +20,6 @@
 //
 //*****************************************************************************
 
-
-
-//*****************************************************************************
-// Selects the UART as the port for communicating with the boot loader.
-// Exclusive of: CAN_ENABLE_UPDATE, SPI_ENABLE_UPDATE,
-// Requires: UART_FIXED_BAUDRATE, BUFFER_SIZE
-//*****************************************************************************
-#define UART_ENABLE_UPDATE
-
 //*****************************************************************************
 // The starting address of the application.  This must be a multiple of 32K(sector size)
 // bytes (making it aligned to a page boundary), and can not be 0 (the first sector is 
@@ -70,13 +35,29 @@
 //
 //*****************************************************************************
 
-
-
-/* UART is used in all the boot modes*/
-#define UART              sciREG3   /* Use appropriate UART port */
-
+#define CSP_SCI              sciREG3   /* Use appropriate UART port */
+#define PRINTF_SCI                 sciREG1
 #define BUFFER_SIZE             64       /*words in the data buffer used for receiving packets*/
 
+typedef enum {
+    OBC_APP_ID = _OBC_APP_ID_,
+    EPS_APP_ID = _EPS_APP_ID_,
+    ADCS_APP_ID = _ADCS_APP_ID_,
+    COMMS_APP_ID = _COMMS_APP_ID_,
+    GND_APP_ID = _GND_APP_ID_,
+    DEMO_APP_ID = _DEMO_APP_ID_,
+    LAST_APP_ID = _LAST_APP_ID_
+} TC_TM_app_id;
 
+typedef enum {
+  SATR_PKT_ILLEGAL_APPID = 0,
+  SATR_PKT_ILLEGAL_SUBSERVICE,
+  SATR_OK,
+  SATR_ERROR,
+  SATR_RETURN_FROM_TASK,
+  SATR_BUFFER_ERR,
+  /*LAST*/
+  SATR_LAST
+} SAT_returnState;
 //#define   DEBUG_MSG_L3
 #endif // __BL_CONFIG_H__
