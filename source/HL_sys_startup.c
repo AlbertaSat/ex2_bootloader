@@ -344,13 +344,6 @@ void _undef(void) {
     }
 }
 
-#pragma CODE_STATE(_svc, 32)
-#pragma INTERRUPT(_c_int00, SWI)
-void _svc (void) {
-    while(1) {
-        sw_reset(PREFETCH); // we should never end up here. behavior is undefined so reset
-    }
-}
 #pragma CODE_STATE(_prefetch, 32)
 #pragma INTERRUPT(_c_int00, PABT)
 void _prefetch (void) {

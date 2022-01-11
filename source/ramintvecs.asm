@@ -11,11 +11,11 @@
 	.retain ".ramIntvecs"
 	.arm
 
-    .ref _svc
+    .ref vPortSWI
 
 	.def ramSWI
 ramSWI
 	ldr pc, ram_tab_swi
 
 ram_tab_swi:
-	.word _svc
+	.word vPortSWI
