@@ -66,6 +66,8 @@
 #include "HL_sys_dma.h"
 
 /* USER CODE BEGIN (0) */
+#include "system.h"
+extern void csp_sciNotification(sciBASE_t *sci, uint32 flags);
 /* USER CODE END */
 #pragma WEAK(esmGroup1Notification)
 void esmGroup1Notification(esmBASE_t *esm, uint32 channel)
@@ -191,6 +193,10 @@ void sciNotification(sciBASE_t *sci, uint32 flags)
 {
 /*  enter user code between the USER CODE BEGIN and USER CODE END. */
 /* USER CODE BEGIN (32) */
+   switch((uint32_t)sci) {
+   case (uint32_t)CSP_SCI:
+       csp_sciNotification(sci, flags);
+   }
 /* USER CODE END */
 }
 
