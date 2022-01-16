@@ -50,6 +50,7 @@ typedef struct __attribute__((packed)) {
 
 typedef enum SW_RESET_REASON_ {
     NONE,
+    UNDEF,
     DABORT,
     PREFETCH,
     REQUESTED
