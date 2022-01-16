@@ -1,6 +1,7 @@
 #include <FreeRTOS.h>
 #include <os_task.h>
 #include <system.h>
+#include "services.h"
 #include "HL_system.h"
 #include "HL_rti.h"
 #include "HL_gio.h"
@@ -60,6 +61,13 @@ static inline bool init_csp_interface() {
     return true;
 }
 
+void eeprom_spin(void *pvParameters) {
+    for (;;) {
+        TI_Fee_MainFunction();
+        vTaskDelay(5);
+    }
+}
+
 /**
  * Initialize CSP network
  */
@@ -79,11 +87,10 @@ static void init_csp() {
 
 void bl_init(void *pvParameters) {
     printf("Hello world!\n");
-
-    for (;;) {
-        printf("Running");
-        vTaskDelay(1000);
-    }
+    xTaskCreate(eeprom_spin, "eprm_spin", 128, NULL, INIT_PRIO, NULL);
+    init_csp();
+    start_service_server();
+    vTaskDelete(0);
 }
 
 char get_boot_type(int rstsrc, boot_info *b_inf) {
@@ -111,10 +118,6 @@ char get_boot_type(int rstsrc, boot_info *b_inf) {
     default:
         return 'B';
     }
-}
-
-void main() {
-    bl_main(NO_RESET);
 }
 
 void bl_main(resetSource_t rstsrc) {
