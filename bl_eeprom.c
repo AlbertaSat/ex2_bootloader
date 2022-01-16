@@ -7,10 +7,12 @@
 
 #include "bl_eeprom.h"
 #include "ti_fee.h"
+#include "FreeRTOSConfig.h"
 
 unsigned short crc16();
 
 void sw_reset(SW_RESET_REASON reason) {
+    RAISE_PRIVILEGE;
     boot_info info;
     eeprom_init();
     info = eeprom_get_boot_info();
@@ -18,6 +20,7 @@ void sw_reset(SW_RESET_REASON reason) {
     eeprom_set_boot_info(info);
     eeprom_shutdown();
     systemREG1->SYSECR = (0x10) << 14;
+    RESET_PRIVILEGE;
 }
 
 // Returns false on failure
