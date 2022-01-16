@@ -207,11 +207,6 @@ void _c_int00(void)
 
         case OSC_FAILURE_RESET:
 /* USER CODE BEGIN (14) */
-            if (_errata_SSWF021_45_both_plls(PLL_RETRIES) != 0U)
-            {
-                /* Put system in a safe state */
-                handlePLLLockFail();
-            }
 /* USER CODE END */
         break;
 		
@@ -219,13 +214,16 @@ void _c_int00(void)
         case WATCHDOG2_RESET:
 				
 /* USER CODE BEGIN (15) */
-            systemREG1->SYSECR = (0x10) << 14; // cause a system reset to put the SoC in a known state
+            _coreEnableEventBusExport_();
+            systemInit();
+            _coreEnableIrqVicOffset_();
+            vimInit();
+            esmInit();
 /* USER CODE END */
         break;
     
         case CPU0_RESET:
 /* USER CODE BEGIN (16) */
-            systemREG1->SYSECR = (0x10) << 14; // cause a system reset to put the SoC in a known state
 /* USER CODE END */
 
 /* USER CODE BEGIN (17) */
@@ -257,7 +255,15 @@ void _c_int00(void)
     
         default:
 /* USER CODE BEGIN (21) */
-            systemREG1->SYSECR = (0x10) << 14; // cause a system reset to put the SoC in a known state
+            if(rstSrc != POWERON_RESET)
+             {
+                 _memInit_();
+             }
+             _coreEnableEventBusExport_();
+             systemInit();
+             _coreEnableIrqVicOffset_();
+             vimInit();
+             esmInit();
 /* USER CODE END */
         break;
     }
@@ -268,6 +274,8 @@ void _c_int00(void)
     _mpuInit_();
 	
 /* USER CODE BEGIN (23) */
+    load((char *)&FlashApi_LoadStart, (char *)&FlashApi_RunStart, (unsigned int)&FlashApi_LoadSize);
+    load((char *)&ramint_LoadStart, (char *)&ramint_RunStart, (unsigned int)&ramint_LoadSize);
 /* USER CODE END */
 
     _cacheEnable_();
@@ -282,12 +290,6 @@ void _c_int00(void)
         /* initialize global variable and constructors */
     __TI_auto_init();
 /* USER CODE BEGIN (26) */
-    // Must disable cache before writing program code to RAM or the cpu will fail to execute that code
-    _cacheDisable_();
-    load((char *)&FlashApi_LoadStart, (char *)&FlashApi_RunStart, (unsigned int)&FlashApi_LoadSize);
-    load((char *)&ramint_LoadStart, (char *)&ramint_RunStart, (unsigned int)&ramint_LoadSize);
-    int rstsrc = rstSrc;
-    _cacheEnable_();
     bl_main(rstSrc);
     sw_reset(REQUESTED);
 /* USER CODE END */
@@ -340,7 +342,7 @@ void handlePLLLockFail(void)
 #pragma INTERRUPT(_c_int00, UDEF)
 void _undef(void) {
     while(1) {
-        systemREG1->SYSECR = (0x10) << 14;
+        sw_reset(UNDEF);
     }
 }
 
