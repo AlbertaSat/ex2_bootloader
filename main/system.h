@@ -38,16 +38,7 @@
 #define CSP_SCI              sciREG3   /* Use appropriate UART port */
 #define PRINTF_SCI                 sciREG1
 #define BUFFER_SIZE             64       /*words in the data buffer used for receiving packets*/
-
-typedef enum {
-    OBC_APP_ID = _OBC_APP_ID_,
-    EPS_APP_ID = _EPS_APP_ID_,
-    ADCS_APP_ID = _ADCS_APP_ID_,
-    COMMS_APP_ID = _COMMS_APP_ID_,
-    GND_APP_ID = _GND_APP_ID_,
-    DEMO_APP_ID = _DEMO_APP_ID_,
-    LAST_APP_ID = _LAST_APP_ID_
-} TC_TM_app_id;
+#define NORMAL_SERVICE_PRIO (tskIDLE_PRIORITY + 1)
 
 typedef enum {
   SATR_PKT_ILLEGAL_APPID = 0,
