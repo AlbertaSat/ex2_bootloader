@@ -166,20 +166,20 @@ uint32_t Fapi_BlockProgram( uint32_t Bank, uint32_t Flash_Address, uint32_t Data
 	else
 		bytes = 32;
 
-	if ((Fapi_initializeFlashBanks((uint32_t)SYS_CLK_FREQ)) == Fapi_Status_Success){
+	/*if ((Fapi_initializeFlashBanks((uint32_t)SYS_CLK_FREQ)) == Fapi_Status_Success){
 		 (void)Fapi_enableAutoEccCalculation();
 		 (void)Fapi_setActiveFlashBank((Fapi_FlashBankType)Bank);
-	     (void)Fapi_enableMainBankSectors(0xFFFF);                    /* used for API 2.01*/
+	     (void)Fapi_enableMainBankSectors(0xFFFF);
 	}else {
          return (1);
-	}
-
+	}*/
+	(void)Fapi_setActiveFlashBank((Fapi_FlashBankType)Bank);
 	while( FAPI_CHECK_FSM_READY_BUSY != Fapi_Status_FsmReady );
-	while( FAPI_GET_FSM_STATUS != Fapi_Status_Success );
+	//while( FAPI_GET_FSM_STATUS != Fapi_Status_Success );
 
     while( SizeInBytes > 0)
 	{
-		Fapi_issueProgrammingCommand((uint32_t *)dst,
+        Fapi_StatusType success = Fapi_issueProgrammingCommand((uint32_t *)dst,
 									 (uint8_t *)src,
 									 (uint32_t) bytes,
 									 0,
@@ -188,7 +188,6 @@ uint32_t Fapi_BlockProgram( uint32_t Bank, uint32_t Flash_Address, uint32_t Data
 
  		while( FAPI_CHECK_FSM_READY_BUSY == Fapi_Status_FsmBusy );
         while(FAPI_GET_FSM_STATUS != Fapi_Status_Success);
-
 		src += bytes;
 		dst += bytes;
 		SizeInBytes -= bytes;
