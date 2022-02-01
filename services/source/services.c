@@ -43,6 +43,7 @@ SAT_returnState start_service_server(void) {
         return SATR_ERROR;
     }
     start_cli_service();
+    start_updater_service();
     return SATR_OK;
 }
 

@@ -18,6 +18,7 @@
 #include "csp/csp.h"
 #include <csp/drivers/usart.h>
 #include <csp/interfaces/csp_if_can.h>
+#include "privileged_functions.h"
 #define INIT_PRIO configMAX_PRIORITIES - 1
 #define INIT_STACK_SIZE 1500
 
@@ -63,8 +64,10 @@ static inline bool init_csp_interface() {
 
 void eeprom_spin(void *pvParameters) {
     for (;;) {
-        TI_Fee_MainFunction();
-        vTaskDelay(5);
+        do {
+            eeprom_mainfunction();
+            vTaskDelay(2);
+        } while (TI_Fee_GetStatus(0) != IDLE);
     }
 }
 
@@ -87,7 +90,7 @@ static void init_csp() {
 
 void bl_init(void *pvParameters) {
     printf("Hello world!\n");
-    xTaskCreate(eeprom_spin, "eprm_spin", 128, NULL, INIT_PRIO, NULL);
+    //xTaskCreate(eeprom_spin, "eprm_spin", 128, NULL, INIT_PRIO | portPRIVILEGE_BIT, NULL);
     init_csp();
     start_service_server();
     vTaskDelete(0);
@@ -121,6 +124,8 @@ char get_boot_type(int rstsrc, boot_info *b_inf) {
 }
 
 void bl_main(resetSource_t rstsrc) {
+    RAISE_PRIVILEGE;
+    RESET_PRIVILEGE;
     char bootType;
     bool fee_init = eeprom_init();
     boot_info b_inf;
@@ -147,12 +152,18 @@ void bl_main(resetSource_t rstsrc) {
     default: break;
     }
 
+    image_info app;
+    app.addr = 0x00200000;
+    app.exists = EXISTS_FLAG;
+    app.crc=0x3019;
+    app.size=354560;
+    priv_eeprom_set_app_info(app);
+
     // if we make it here the golden image didn't work
 
     /* Initialize SCI Routines to receive Command and transmit data */
 	sciInit();
-
-    xTaskCreate(bl_init, "init", INIT_STACK_SIZE, NULL, INIT_PRIO, NULL);
+    xTaskCreate(bl_init, "init", INIT_STACK_SIZE, NULL, INIT_PRIO | portPRIVILEGE_BIT, NULL);
     vTaskStartScheduler();
 }
 
@@ -199,4 +210,10 @@ void vApplicationMallocFailedHook(void) {
 
 void vApplicationDaemonTaskStartupHook(void) {}
 
+void ex2_log(const char *format, ...) {
+    va_list arg;
+    va_start(arg, format);
+    vprintf(format, arg);
+    va_end(arg);
+}
 

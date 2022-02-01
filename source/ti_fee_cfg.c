@@ -90,6 +90,118 @@ const Fee_VirtualSectorConfigType Fee_VirtualSectorConfiguration[TI_FEE_NUMBER_O
         /* Start Sector          */     (Fapi_FlashSectorType)1U,            
 		/* End Sector            */     (Fapi_FlashSectorType)1U
     }
+    ,
+    /* Virtual Sector 3 */
+    {
+        /* Virtual sector number */     3U,
+        /* Bank                  */     7U,     
+        /* Start Sector          */     (Fapi_FlashSectorType)2U,
+        /* End Sector            */     (Fapi_FlashSectorType)2U     
+    }
+    ,
+    /* Virtual Sector 4 */
+    {
+        /* Virtual sector number */     4U,
+        /* Bank                  */     7U,
+        /* Start Sector          */     (Fapi_FlashSectorType)3U,
+        /* End Sector            */     (Fapi_FlashSectorType)3U        
+    }
+    ,
+    /* Virtual Sector 5 */
+    {
+        /* Virtual sector number */     5U,
+        /* Bank                  */     7U,
+        /* Start Sector          */     (Fapi_FlashSectorType)4U,
+        /* End Sector            */     (Fapi_FlashSectorType)4U        
+    }
+    ,
+    /* Virtual Sector 6 */
+    {
+        /* Virtual sector number */     6U,
+        /* Bank                  */     7U,
+        /* Start Sector          */     (Fapi_FlashSectorType)5U,
+        /* End Sector            */     (Fapi_FlashSectorType)5U        
+    }
+    ,
+    /* Virtual Sector 7 */
+    {
+        /* Virtual sector number */     7U,
+        /* Bank                  */     7U,
+        /* Start Sector          */     (Fapi_FlashSectorType)6U,
+        /* End Sector            */     (Fapi_FlashSectorType)6U        
+    }
+    ,
+    /* Virtual Sector 8 */
+    {
+        /* Virtual sector number */     8U,
+        /* Bank                  */     7U,
+        /* Start Sector          */     (Fapi_FlashSectorType)7U,
+        /* End Sector            */     (Fapi_FlashSectorType)7U        
+    }
+    ,
+    /* Virtual Sector 9 */
+    {
+        /* Virtual sector number */     9U,
+        /* Bank                  */     7U,
+        /* Start Sector          */     (Fapi_FlashSectorType)8U,
+        /* End Sector            */     (Fapi_FlashSectorType)8U        
+    }
+    ,
+    /* Virtual Sector 10 */
+    {
+        /* Virtual sector number */     10U,
+        /* Bank                  */     7U,
+        /* Start Sector          */     (Fapi_FlashSectorType)9U,
+        /* End Sector            */     (Fapi_FlashSectorType)9U        
+    }
+    ,
+    /* Virtual Sector 11 */
+    {
+        /* Virtual sector number */     11U,
+        /* Bank                  */     7U,
+        /* Start Sector          */     (Fapi_FlashSectorType)10U,
+        /* End Sector            */     (Fapi_FlashSectorType)10U        
+    }
+    ,
+    /* Virtual Sector 12 */
+    {
+        /* Virtual sector number */     12U,
+        /* Bank                  */     7U,
+        /* Start Sector          */     (Fapi_FlashSectorType)11U,
+        /* End Sector            */     (Fapi_FlashSectorType)11U        
+    }
+    ,
+    /* Virtual Sector 13 */
+    {
+        /* Virtual sector number */     13U,
+        /* Bank                  */     7U,
+        /* Start Sector          */     (Fapi_FlashSectorType)12U,
+        /* End Sector            */     (Fapi_FlashSectorType)12U        
+    }
+    ,
+    /* Virtual Sector 14 */
+    {
+        /* Virtual sector number */     14U,
+        /* Bank                  */     7U,
+        /* Start Sector          */     (Fapi_FlashSectorType)13U,
+        /* End Sector            */     (Fapi_FlashSectorType)13U        
+    }
+    ,
+    /* Virtual Sector 15 */
+    {
+        /* Virtual sector number */     15U,
+        /* Bank                  */     7U,
+        /* Start Sector          */     (Fapi_FlashSectorType)14U,
+        /* End Sector            */     (Fapi_FlashSectorType)14U        
+    }
+    ,
+    /* Virtual Sector 16 */
+    {
+        /* Virtual sector number */     16U,
+        /* Bank                  */     7U,
+        /* Start Sector          */     (Fapi_FlashSectorType)15U,
+        /* End Sector            */     (Fapi_FlashSectorType)15U        
+    }
 };
 
 
@@ -103,7 +215,7 @@ const Fee_BlockConfigType Fee_BlockConfiguration[TI_FEE_NUMBER_OF_BLOCKS] =
         /*      Block 1 */
         {
                /* Block number                          */     1U, 
-               /* Block size                            */     1U,
+               /* Block size                            */     64U,
                /* Block immediate data used             */     TRUE,			   
                /* Number of write cycles                */     0x8U,
                /* Device Index                          */     0x00000000U,
@@ -138,138 +250,6 @@ const Fee_BlockConfigType Fee_BlockConfiguration[TI_FEE_NUMBER_OF_BLOCKS] =
         {
                /* Block number                          */     4U, 
                /* Block size                            */     64U,
-               /* Block immediate data used             */     TRUE,			   
-               /* Number of write cycles                */     0x8U,
-               /* Device Index                          */     0x00000000U,
-               /* Number of DataSets                    */     1U,			   
-               /* EEP number                            */     0U			   
-        }
-        ,
-        /*      Block 5 */
-        {
-               /* Block number                          */     5U, 
-               /* Block size                            */     64U,
-               /* Block immediate data used             */     TRUE,			   
-               /* Number of write cycles                */     0x8U,
-               /* Device Index                          */     0x00000000U,
-               /* Number of DataSets                    */     1U,			   
-               /* EEP number                            */     0U			   
-        }
-        ,
-        /*      Block 6 */
-        {
-               /* Block number                          */     6U, 
-               /* Block size                            */     64U,
-               /* Block immediate data used             */     TRUE,			   
-               /* Number of write cycles                */     0x8U,
-               /* Device Index                          */     0x00000000U,
-               /* Number of DataSets                    */     1U,			   
-               /* EEP number                            */     0U			   
-        }
-        ,
-        /*      Block 7 */
-        {
-               /* Block number                          */     7U, 
-               /* Block size                            */     64U,
-               /* Block immediate data used             */     TRUE,			   
-               /* Number of write cycles                */     0x8U,
-               /* Device Index                          */     0x00000000U,
-               /* Number of DataSets                    */     1U,			   
-               /* EEP number                            */     0U			   
-        }
-        ,
-        /*      Block 8 */
-        {
-               /* Block number                          */     8U, 
-               /* Block size                            */     0U,
-               /* Block immediate data used             */     TRUE,			   
-               /* Number of write cycles                */     0x8U,
-               /* Device Index                          */     0x00000000U,
-               /* Number of DataSets                    */     1U,			   
-               /* EEP number                            */     0U			   
-        }
-        ,
-        /*      Block 9 */
-        {
-               /* Block number                          */     9U, 
-               /* Block size                            */     0U,
-               /* Block immediate data used             */     TRUE,			   
-               /* Number of write cycles                */     0x8U,
-               /* Device Index                          */     0x00000000U,
-               /* Number of DataSets                    */     1U,			   
-               /* EEP number                            */     0U			   
-        }
-        ,
-        /*      Block 10 */
-        {
-               /* Block number                          */     10U, 
-               /* Block size                            */     0U,
-               /* Block immediate data used             */     TRUE,			   
-               /* Number of write cycles                */     0x8U,
-               /* Device Index                          */     0x00000000U,
-               /* Number of DataSets                    */     1U,		   
-               /* EEP number                            */     0U			   
-        }
-        ,
-        /*      Block 11 */
-        {
-               /* Block number                          */     11U, 
-               /* Block size                            */     0U,
-               /* Block immediate data used             */     TRUE,			   
-               /* Number of write cycles                */     0x8U,
-               /* Device Index                          */     0x00000000U,
-               /* Number of DataSets                    */     1U,			   
-               /* EEP number                            */     0U			   
-        }
-        ,
-        /*      Block 12 */
-        {
-               /* Block number                          */     12U, 
-               /* Block size                            */     0U,
-               /* Block immediate data used             */     TRUE,			   
-               /* Number of write cycles                */     0x8U,
-               /* Device Index                          */     0x00000000U,
-               /* Number of DataSets                    */     1U,			   
-               /* EEP number                            */     0U			   
-        }
-        ,
-        /*      Block 13 */
-        {
-               /* Block number                          */     13U, 
-               /* Block size                            */     0U,
-               /* Block immediate data used             */     TRUE,			   
-               /* Number of write cycles                */     0x8U,
-               /* Device Index                          */     0x00000000U,
-               /* Number of DataSets                    */     1U,			   
-               /* EEP number                            */     0U			   
-        }
-        ,
-        /*      Block 14 */
-        {
-               /* Block number                          */     14U, 
-               /* Block size                            */     0U,
-               /* Block immediate data used             */     TRUE,			   
-               /* Number of write cycles                */     0x8U,
-               /* Device Index                          */     0x00000000U,
-               /* Number of DataSets                    */     1U,		   
-               /* EEP number                            */     0U			   
-        }
-        ,
-        /*      Block 15 */
-        {
-               /* Block number                          */     15U, 
-               /* Block size                            */     0U,
-               /* Block immediate data used             */     TRUE,			   
-               /* Number of write cycles                */     0x8U,
-               /* Device Index                          */     0x00000000U,
-               /* Number of DataSets                    */     1U,			   
-               /* EEP number                            */     0U			   
-        }
-        ,
-        /*      Block 16 */
-        {
-               /* Block number                          */     16U, 
-               /* Block size                            */     0U,
                /* Block immediate data used             */     TRUE,			   
                /* Number of write cycles                */     0x8U,
                /* Device Index                          */     0x00000000U,
