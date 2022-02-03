@@ -139,14 +139,19 @@ uint32_t Fapi_BlockErase(uint32_t ulAddr, uint32_t Size)
 
     for (i = ucStartBank; i < (ucEndBank + 1); i++){
         Fapi_setActiveFlashBank((Fapi_FlashBankType)i);
-        Fapi_enableMainBankSectors(0xFFFF);                 /* used for API 2.01*/
+        if (i == 7) {
+            Fapi_enableEepromBankSectors(0xFFFF, 0);
+        } else {
+            Fapi_enableMainBankSectors(0xFFFF);                 /* used for API 2.01*/
+        }
         while( FAPI_CHECK_FSM_READY_BUSY != Fapi_Status_FsmReady );
     }
 
     for (i=ucStartSector; i<(ucEndSector+1); i++){
 		Fapi_issueAsyncCommandWithAddress(Fapi_EraseSector, flash_sector[i].start);
     	while( FAPI_CHECK_FSM_READY_BUSY == Fapi_Status_FsmBusy );
-    	while(FAPI_GET_FSM_STATUS != Fapi_Status_Success);
+        while(FAPI_GET_FSM_STATUS != Fapi_Status_Success);
+
     }
 
 //    status =  Flash_Erase_Check((uint32_t)ulAddr, Size);
@@ -160,20 +165,21 @@ uint32_t Fapi_BlockProgram( uint32_t Bank, uint32_t Flash_Address, uint32_t Data
 	register uint32_t src = Data_Address;
 	register uint32_t dst = Flash_Address;
 	uint32_t bytes;
+	int bank_width = Bank == 7 ? 8 : 32;
 
-	if (SizeInBytes < 32)
+	if (SizeInBytes < bank_width)
 		bytes = SizeInBytes;
 	else
-		bytes = 32;
+		bytes = bank_width;
 
-	/*if ((Fapi_initializeFlashBanks((uint32_t)SYS_CLK_FREQ)) == Fapi_Status_Success){
-		 (void)Fapi_enableAutoEccCalculation();
-		 (void)Fapi_setActiveFlashBank((Fapi_FlashBankType)Bank);
-	     (void)Fapi_enableMainBankSectors(0xFFFF);
-	}else {
-         return (1);
-	}*/
-	(void)Fapi_setActiveFlashBank((Fapi_FlashBankType)Bank);
+     (void)Fapi_setActiveFlashBank((Fapi_FlashBankType)Bank);
+     if (Bank == 7) {
+         Fapi_enableEepromBankSectors(0xFFFF, 0);
+     } else {
+        (void)Fapi_enableMainBankSectors(0xFFFF);
+     }
+
+	//(void)Fapi_setActiveFlashBank((Fapi_FlashBankType)Bank);
 	while( FAPI_CHECK_FSM_READY_BUSY != Fapi_Status_FsmReady );
 	//while( FAPI_GET_FSM_STATUS != Fapi_Status_Success );
 
@@ -191,7 +197,7 @@ uint32_t Fapi_BlockProgram( uint32_t Bank, uint32_t Flash_Address, uint32_t Data
 		src += bytes;
 		dst += bytes;
 		SizeInBytes -= bytes;
-        if ( SizeInBytes < 32){
+        if ( SizeInBytes < bank_width){
            bytes = SizeInBytes;
         }
     }
