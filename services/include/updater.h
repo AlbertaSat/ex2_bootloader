@@ -31,6 +31,8 @@ SAT_returnState start_updater_service(void);
 typedef enum {
     INITIALIZE_UPDATE,
     PROGRAM_BLOCK,
+    END_UPDATE,
+    RESUME_UPDATE,
     ERASE_APP,
     VERIFY_APPLICATION_IMAGE,
     VERIFY_GOLDEN_IMAGE

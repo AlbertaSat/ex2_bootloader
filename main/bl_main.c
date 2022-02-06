@@ -62,15 +62,6 @@ static inline bool init_csp_interface() {
     return true;
 }
 
-void eeprom_spin(void *pvParameters) {
-    for (;;) {
-        do {
-            eeprom_mainfunction();
-            vTaskDelay(2);
-        } while (TI_Fee_GetStatus(0) != IDLE);
-    }
-}
-
 /**
  * Initialize CSP network
  */
@@ -98,7 +89,7 @@ void bl_init(void *pvParameters) {
 
 char get_boot_type(int rstsrc, boot_info *b_inf) {
 
-    char stored_boot_type = eeprom_get_boot_type();
+    char stored_boot_type = b_inf->type;
 
     switch(rstsrc) {
     case POWERON_RESET:
@@ -124,25 +115,18 @@ char get_boot_type(int rstsrc, boot_info *b_inf) {
 }
 
 void bl_main(resetSource_t rstsrc) {
-    RAISE_PRIVILEGE;
-    RESET_PRIVILEGE;
     char bootType;
-    bool fee_init = eeprom_init();
-    boot_info b_inf;
+    boot_info b_inf = {0};
+    eeprom_get_boot_info(&b_inf);
+    bootType = get_boot_type(rstsrc, &b_inf);
 
-    if (!fee_init) {
-        bootType = 'B'; // EEPROM didn't work, emergency mode
-    } else {
-        b_inf = eeprom_get_boot_info();
-        bootType = get_boot_type(rstsrc, &b_inf);
-    }
 
     b_inf.count += 1;
     b_inf.reason.rstsrc = rstsrc;
     if (rstsrc != SW_RESET) {
         b_inf.reason.swr_reason = NONE;
     }
-    eeprom_set_boot_info(b_inf);
+    eeprom_set_boot_info(&b_inf);
 
     switch(bootType) {
     case 'A': start_application(); // no break to automatically attempt start golden on failure
@@ -152,18 +136,13 @@ void bl_main(resetSource_t rstsrc) {
     default: break;
     }
 
-    image_info app;
-    app.addr = 0x00200000;
-    app.exists = EXISTS_FLAG;
-    app.crc=0x3019;
-    app.size=354560;
-    priv_eeprom_set_app_info(app);
-
     // if we make it here the golden image didn't work
 
     /* Initialize SCI Routines to receive Command and transmit data */
 	sciInit();
+	canInit();
     xTaskCreate(bl_init, "init", INIT_STACK_SIZE, NULL, INIT_PRIO | portPRIVILEGE_BIT, NULL);
+
     vTaskStartScheduler();
 }
 

@@ -31,12 +31,7 @@
 #include "printf.h"
 #include "privileged_functions.h"
 
-static struct __attribute__((packed)) {
-    uint32_t start_address;
-    uint32_t size;
-    uint32_t next_address;
-    bool initialized;
-} update = {0};
+
 
 static char *error = "None";
 /**
@@ -96,9 +91,10 @@ static BaseType_t prvAddrCommand(char *pcWriteBuffer, size_t xWriteBufferLen, co
             snprintf(pcWriteBuffer, xWriteBufferLen, "Address too low for application\n");
             return pdFALSE;
         }
-        image_info addr_info = eeprom_get_app_info();
+        image_info addr_info = {0};
+        eeprom_get_app_info(&addr_info);
         addr_info.addr = new_address;
-        priv_eeprom_set_app_info(addr_info);
+        eeprom_set_app_info(&addr_info);
         break;
     }
     case 'G':
@@ -107,9 +103,10 @@ static BaseType_t prvAddrCommand(char *pcWriteBuffer, size_t xWriteBufferLen, co
             snprintf(pcWriteBuffer, xWriteBufferLen, "Address too low for golden image\n");
             return pdFALSE;
         }
-        image_info addr_info = eeprom_get_golden_info();
+        image_info addr_info = {0};
+        eeprom_get_golden_info(&addr_info);
         addr_info.addr = new_address;
-        priv_eeprom_set_golden_info(addr_info);
+        eeprom_set_golden_info(&addr_info);
         break;
     }
     default:
@@ -134,13 +131,13 @@ static BaseType_t prvInfoCommand(char *pcWriteBuffer, size_t xWriteBufferLen, co
         return pdFALSE;
     }
 
-    image_info info;
+    image_info info = {0};
     switch (*image) {
     case 'A':
-        info = eeprom_get_app_info();
+        eeprom_get_app_info(&info);
         break;
     case 'G':
-        info = eeprom_get_golden_info();
+        eeprom_get_golden_info(&info);
         break;
     default:
         snprintf(pcWriteBuffer, xWriteBufferLen, "Invalid Image Type\n");
@@ -161,9 +158,31 @@ static BaseType_t prvErrorCommand(char *pcWriteBuffer, size_t xWriteBufferLen, c
     return pdFALSE;
 }
 
+
+static BaseType_t prvVerifyAppCommand(char *pcWriteBuffer, size_t xWriteBufferLen, const char *pcCommandString) {
+    if (verify_application()) {
+        snprintf(pcWriteBuffer, xWriteBufferLen, "Success\n", error);
+
+    } else {
+        snprintf(pcWriteBuffer, xWriteBufferLen, "Failure\n", error);
+    }
+    return pdFALSE;
+}
+
+static BaseType_t prvVerifyGoldCommand(char *pcWriteBuffer, size_t xWriteBufferLen, const char *pcCommandString) {
+    if (verify_golden()) {
+        snprintf(pcWriteBuffer, xWriteBufferLen, "Success\n", error);
+    } else {
+        snprintf(pcWriteBuffer, xWriteBufferLen, "Failure\n", error);
+    }
+    return pdFALSE;
+}
+
 static const CLI_Command_Definition_t xAddrCommand = {"address", "address:\n\tSet address of image. Image is either G or A\n\tFirst parameter is image type, second parameter is address as hex\n", prvAddrCommand, 2};
 static const CLI_Command_Definition_t xInfoCommand = {"info", "info:\n\tGet Image info. Image is either G or A\n", prvInfoCommand, 1};
-static const CLI_Command_Definition_t xErrorCommand = {"error", "error:\n\tGet latest error in updater module", prvErrorCommand, 0};
+static const CLI_Command_Definition_t xErrorCommand = {"error", "error:\n\tGet latest error in updater module\n", prvErrorCommand, 0};
+static const CLI_Command_Definition_t xVerifyAppCommand = {"verifyapp", "verifyapp:\n\tVerify application image\n", prvVerifyAppCommand, 0};
+static const CLI_Command_Definition_t xVerifyGoldCommand = {"verifygold", "error:\n\tVerify golden image\n", prvVerifyGoldCommand, 0};
 
 /**
  * @brief
@@ -210,7 +229,7 @@ SAT_returnState updater_app(csp_packet_t *packet) {
         }
 
         oReturnCheck = 0;
-        oReturnCheck = priv_Fapi_BlockErase(app_info.addr, app_info.size);
+        oReturnCheck = Fapi_BlockErase(app_info.addr, app_info.size);
         if (oReturnCheck) {
             error = "Could not erase block";
             status = -1;
@@ -218,7 +237,7 @@ SAT_returnState updater_app(csp_packet_t *packet) {
         }
 
         app_info.exists = EXISTS_FLAG;
-        priv_eeprom_set_app_info(app_info);
+        eeprom_set_app_info(&app_info);
         status = 0;
         update.initialized = true;
         update.start_address = app_info.addr;
@@ -245,7 +264,7 @@ SAT_returnState updater_app(csp_packet_t *packet) {
         uint8_t bank = address < 0x00200000 ? 0 : 1;
         uint8_t *buf = &packet->data[IN_DATA_BYTE + 6];
 
-        oReturnCheck = priv_Fapi_BlockProgram(bank, flash_destination, (unsigned long)buf, size);
+        oReturnCheck = Fapi_BlockProgram(bank, flash_destination, (unsigned long)buf, size);
         if (oReturnCheck) {
             error = "Failed to write to block";
             status = -1;
@@ -254,10 +273,16 @@ SAT_returnState updater_app(csp_packet_t *packet) {
         update.next_address = address + size;
         break;
 
+    case END_UPDATE:
+        break;
+
+    case RESUME_UPDATE:
+        break;
+
     case ERASE_APP:
-        app_info = eeprom_get_app_info();
+        eeprom_get_app_info(&app_info);
         app_info.exists = 0;
-        priv_eeprom_set_app_info(app_info);
+        eeprom_set_app_info(&app_info);
         set_packet_length(packet, sizeof(int8_t) + 1);
         status = 0;
         break;
@@ -344,6 +369,8 @@ SAT_returnState start_updater_service(void) {
     FreeRTOS_CLIRegisterCommand(&xAddrCommand);
     FreeRTOS_CLIRegisterCommand(&xInfoCommand);
     FreeRTOS_CLIRegisterCommand(&xErrorCommand);
+    FreeRTOS_CLIRegisterCommand(&xVerifyAppCommand);
+    FreeRTOS_CLIRegisterCommand(&xVerifyGoldCommand);
 
     if (xTaskCreate((TaskFunction_t)updater_service, "updater_service", 300, NULL, NORMAL_SERVICE_PRIO  | portPRIVILEGE_BIT,
                     &svc_tsk) != pdPASS) {

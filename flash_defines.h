@@ -39,7 +39,7 @@ typedef struct Banks
 
 #if defined (RM57) || defined (TMS570LC43)
 #define NUMBEROFSECTORS 64
-const SECTORS flash_sector[NUMBEROFSECTORS]=
+static const SECTORS flash_sector[NUMBEROFSECTORS]=
 {
   (void *)0x00000000, 0x04000, 0,  0, 0xfff87000,
   (void *)0x00004000, 0x04000, 0,  1, 0xfff87000,
@@ -112,7 +112,7 @@ const SECTORS flash_sector[NUMBEROFSECTORS]=
 
 
 #define NUMBEROFBANKS 3
-const BANKS flash_bank[NUMBEROFBANKS]=
+static const BANKS flash_bank[NUMBEROFBANKS]=
 {
   (void *) 0x00000000, 0x200000, 0, 0xfff87000, 16,
   (void *) 0x00200000, 0x400000, 1, 0xfff87000, 16,

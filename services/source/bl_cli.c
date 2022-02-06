@@ -101,7 +101,8 @@ static BaseType_t prvEchoCommand(char *pcWriteBuffer, size_t xWriteBufferLen, co
 }
 
 static BaseType_t prvBootInfoCommand(char *pcWriteBuffer, size_t xWriteBufferLen, const char *pcCommandString) {
-    boot_info inf = eeprom_get_boot_info();
+    boot_info inf = {0};
+    eeprom_get_boot_info(&inf);
     char *reset_source_str;
     switch (inf.reason.rstsrc) {
     case POWERON_RESET:
@@ -183,12 +184,20 @@ static BaseType_t prvRebootCommand(char *pcWriteBuffer, size_t xWriteBufferLen, 
             return pdFALSE;
         }
         snprintf(pcWriteBuffer, xWriteBufferLen, "Rebooting in 3 seconds\n");
-        eeprom_set_boot_type(parameter);
+        boot_info b_inf = {0};
+        eeprom_get_boot_info(&b_inf);
+        b_inf.type = *parameter;
+        eeprom_set_boot_info(&b_inf);
         xTaskCreate(vRebootHandler, "rebooter", 128, NULL, 4, NULL);
     }
     return pdFALSE;
 }
 
+static BaseType_t prvUptimeCommand(char *pcWriteBuffer, size_t xWriteBufferLen, const char *pcCommandString) {
+    BaseType_t uptime = (xTaskGetTickCount() / 1000);
+    snprintf(pcWriteBuffer, xWriteBufferLen, "%d Seconds\n", uptime);
+    return pdFALSE;
+}
 
 /*
  * Command Struct Definitions
@@ -202,6 +211,7 @@ static const CLI_Command_Definition_t xEchoCommand = {"echo", "echo:\n\tEchoes a
 static const CLI_Command_Definition_t xHelloCommand = {"hello", "hello:\n\tSays hello :)\n", prvHelloCommand, 0};
 static const CLI_Command_Definition_t xBootInfoCommand = {"bootinfo", "bootinfo:\n\tGives a breakdown of the boot info\n", prvBootInfoCommand, 0};
 static const CLI_Command_Definition_t xRebootCommand = {"reboot", "reboot:\n\tReboot to a mode. Can be B, G, or A\n", prvRebootCommand, 1};
+static const CLI_Command_Definition_t xUptimeCommand = {"uptime", "uptime:\n\tGet uptime in seconds\n", prvUptimeCommand, 0};
 
 /**
  * @brief
@@ -292,6 +302,7 @@ void register_commands() {
     FreeRTOS_CLIRegisterCommand(&xHelloCommand);
     FreeRTOS_CLIRegisterCommand(&xBootInfoCommand);
     FreeRTOS_CLIRegisterCommand(&xRebootCommand);
+    FreeRTOS_CLIRegisterCommand(&xUptimeCommand);
 }
 
 /**
