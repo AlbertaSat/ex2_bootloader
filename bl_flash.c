@@ -21,7 +21,6 @@
 // DAMAGES, FOR ANY REASON WHATSOEVER.
 //
 //*****************************************************************************
-
 #define _L2FMC
 #include "bl_eeprom.h"
 #include "bl_flash.h"
@@ -97,7 +96,7 @@ BLInternalFlashStartAddrCheck(uint32_t ulAddr, uint32_t ulImgSize)
     // Must be greater than GOLD_MINIMUM_ADDR
     // If flashing to the golden image bank, the size of the image may not write higher than 0x00200000. Which is the start of bank 1
     // if flashing to the application image bank, the image may not write higher than 0x003FFFFF. Which is the end of bank 1
-    if (ulAddr <= GOLD_MINIMUM_ADDR) {
+    if (ulAddr < GOLD_MINIMUM_ADDR) {
         return false;
     } else if (ulAddr < APP_MINIMUM_ADDR  && ulAddr + ulImgSize <= 0x00200000) {
         return true;
@@ -191,9 +190,9 @@ uint32_t Fapi_BlockProgram( uint32_t Bank, uint32_t Flash_Address, uint32_t Data
 									 0,
 									 0,
 									 Fapi_AutoEccGeneration);
-
  		while( FAPI_CHECK_FSM_READY_BUSY == Fapi_Status_FsmBusy );
         while(FAPI_GET_FSM_STATUS != Fapi_Status_Success);
+
 		src += bytes;
 		dst += bytes;
 		SizeInBytes -= bytes;
