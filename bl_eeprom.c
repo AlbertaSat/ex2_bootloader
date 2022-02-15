@@ -14,13 +14,17 @@
 
 unsigned short crc16();
 
-void sw_reset(SW_RESET_REASON reason) {
+// @param reboot_type: if 0, preserve boot type
+void sw_reset(char reboot_type, SW_RESET_REASON reason) {
 
     boot_info info = {0};
     eeprom_get_boot_info(&info);
     info.reason.swr_reason =  reason;
     if (reason == REQUESTED) {
         info.attempts = 0; // Reset counter because this is a request
+    }
+    if (reboot_type != 0) {
+        info.type = reboot_type;
     }
     eeprom_set_boot_info(&info);
     raise_privilege();
@@ -43,7 +47,6 @@ const SECTORS *eeprom_get_sector_by_block(uint8_t block) {
 }
 
 static Fapi_StatusType eeprom_write(void *dat, uint8_t block, uint32_t size) {
-    raise_privilege();
     // find address of block
     const SECTORS *sector = eeprom_get_sector_by_block(block);
     if (sector == 0) {
@@ -56,7 +59,7 @@ static Fapi_StatusType eeprom_write(void *dat, uint8_t block, uint32_t size) {
     if (size > sector_size) {
         return Fapi_Error_AsyncIncorrectDataBufferLength;
     }
-
+    raise_privilege();
     uint32_t status = Fapi_BlockErase((uint32_t)addr, size);
     status = Fapi_BlockProgram(7, (uint32_t)addr, (uint32_t)dat, size);
     reset_privilege();
@@ -111,6 +114,16 @@ Fapi_StatusType eeprom_get_boot_info(boot_info *b) {
 
 Fapi_StatusType eeprom_set_boot_info(boot_info *b) {
     Fapi_StatusType status = eeprom_write((void *)b, BOOT_INFO_BLOCKNUMBER, sizeof(boot_info));
+    return status;
+}
+
+Fapi_StatusType eeprom_set_update_info(update_info *u) {
+    Fapi_StatusType status = eeprom_write((void *)u, UPDATE_INFO_BLOCKNUMBER, UPDATE_INFO_LEN);
+    return status;
+}
+
+Fapi_StatusType eeprom_get_update_info(update_info *u) {
+    Fapi_StatusType status = eeprom_read((void *)u, UPDATE_INFO_BLOCKNUMBER, UPDATE_INFO_LEN);
     return status;
 }
 

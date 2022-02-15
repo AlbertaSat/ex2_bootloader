@@ -28,17 +28,6 @@
 #include "bl_flash.h"
 #include "ti_fee.h"
 
-void reboot_system_(char reboot_type) {
-    RAISE_PRIVILEGE;
-    boot_info b_inf;
-    eeprom_get_boot_info(&b_inf);
-    b_inf.reason.swr_reason = REQUESTED;
-    b_inf.type = reboot_type;
-    eeprom_set_boot_info(&b_inf);
-    systemREG1->SYSECR = (0x10) << 14;
-    RESET_PRIVILEGE;
-}
-
 static BaseType_t xRunningPrivileged;
 
 void raise_privilege_() {

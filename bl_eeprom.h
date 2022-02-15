@@ -13,7 +13,7 @@
 #include "HL_system.h"
 #include <F021.h>
 
-#define EXISTS_FLAG 0xA5A5A5A5
+#define EXISTS_FLAG 0x5A5A5A5A
 
 #define APP_STATUS_BLOCKNUMBER 1 // status byte reports 1 if program present
 #define APP_STATUS_LEN sizeof(image_info)
@@ -21,8 +21,8 @@
 #define GOLD_STATUS_BLOCKNUMBER 2
 #define GOLD_STATUS_LEN sizeof(image_info)
 
-#define GOLD_MINIMUM_ADDR 0x00018000
-#define GOLD_DEFAULT_ADDR 0x00018000
+#define GOLD_MINIMUM_ADDR 0x00020000
+#define GOLD_DEFAULT_ADDR 0x00020000
 #define GOLD_START_BANK 0
 
 #define APP_MINIMUM_ADDR 0x00200000
@@ -33,6 +33,9 @@
 
 #define BOOT_INFO_BLOCKNUMBER 0
 #define BOOT_INFO_LEN sizeof(boot_info)
+
+#define UPDATE_INFO_BLOCKNUMBER 3
+#define UPDATE_INFO_LEN sizeof(update_info)
 
 // Representation of data which will be stored in FEE flash
 typedef struct __attribute__((packed)) {
@@ -50,6 +53,12 @@ typedef enum {
     REQUESTED
 } SW_RESET_REASON;
 
+typedef enum SYSTEM_TYPE {
+    BOOTLOADER = 'B',
+    GOLDEN = 'G',
+    APPLICATION = 'A'
+};
+
 typedef struct __attribute__((packed)) {
     resetSource_t rstsrc;
     SW_RESET_REASON swr_reason;
@@ -59,7 +68,8 @@ typedef struct __attribute__((packed)) {
     uint32_t start_address;
     uint32_t size;
     uint32_t next_address;
-    bool initialized;
+    uint32_t initialized;
+    uint16_t crc;
 } update_info;
 
 typedef struct __attribute__((packed)) {
@@ -69,7 +79,7 @@ typedef struct __attribute__((packed)) {
     boot_reason reason;
 } boot_info;
 
-void sw_reset(SW_RESET_REASON reason);
+void sw_reset(char reboot_type, SW_RESET_REASON reason);
 
 bool eeprom_init();
 

@@ -291,7 +291,7 @@ void _c_int00(void)
     __TI_auto_init();
 /* USER CODE BEGIN (26) */
     bl_main(rstSrc);
-    sw_reset(REQUESTED);
+    sw_reset(0, REQUESTED);
 /* USER CODE END */
     
         /* call the application */
@@ -342,7 +342,7 @@ void handlePLLLockFail(void)
 #pragma INTERRUPT(_c_int00, UDEF)
 void _undef(void) {
     while(1) {
-        sw_reset(UNDEF);
+        sw_reset(0, UNDEF);
     }
 }
 
@@ -350,7 +350,7 @@ void _undef(void) {
 #pragma INTERRUPT(_c_int00, PABT)
 void _prefetch (void) {
     while(1) {
-        sw_reset(PREFETCH);
+        sw_reset(0, PREFETCH);
     }
 }
 
@@ -358,7 +358,7 @@ void _prefetch (void) {
 #pragma INTERRUPT(_c_int00, DABT)
 void _dabort (void) {
     while(1) {
-        sw_reset(DABORT);
+        sw_reset(0, DABORT);
     }
 }
 

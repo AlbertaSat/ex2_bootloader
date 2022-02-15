@@ -33,7 +33,4 @@
 #define raise_privilege raise_privilege_
 #define reset_privilege reset_privilege_
 
-void reboot_system(char reboot_type);
-
-
 #endif /* INCLUDE_PRIVILEGED_FUNCTIONS_H_ */
