@@ -151,7 +151,8 @@ static BaseType_t prvBootInfoCommand(char *pcWriteBuffer, size_t xWriteBufferLen
 // Small task that reboots the system after 3 second delay
 void vRebootHandler(void *pvParameters) {
     vTaskDelay(3000);
-    sw_reset(REQUESTED);
+    char reboot_type = (char)pvParameters;
+    sw_reset(reboot_type, REQUESTED);
     vTaskDelete(0); // Delete self just in case the reset fails
 }
 
@@ -184,11 +185,7 @@ static BaseType_t prvRebootCommand(char *pcWriteBuffer, size_t xWriteBufferLen, 
             return pdFALSE;
         }
         snprintf(pcWriteBuffer, xWriteBufferLen, "Rebooting in 3 seconds\n");
-        boot_info b_inf = {0};
-        eeprom_get_boot_info(&b_inf);
-        b_inf.type = *parameter;
-        eeprom_set_boot_info(&b_inf);
-        xTaskCreate(vRebootHandler, "rebooter", 128, NULL, 4, NULL);
+        xTaskCreate(vRebootHandler, "rebooter", 128, *parameter, 4, NULL);
     }
     return pdFALSE;
 }
@@ -198,6 +195,13 @@ static BaseType_t prvUptimeCommand(char *pcWriteBuffer, size_t xWriteBufferLen, 
     snprintf(pcWriteBuffer, xWriteBufferLen, "%d Seconds\n", uptime);
     return pdFALSE;
 }
+static BaseType_t prvHexdumpCommand(char *pcWriteBuffer, size_t xWriteBufferLen, const char *pcCommandString) {
+    // TODO: implement this
+
+    return pdFALSE;
+}
+
+
 
 /*
  * Command Struct Definitions
@@ -212,6 +216,7 @@ static const CLI_Command_Definition_t xHelloCommand = {"hello", "hello:\n\tSays 
 static const CLI_Command_Definition_t xBootInfoCommand = {"bootinfo", "bootinfo:\n\tGives a breakdown of the boot info\n", prvBootInfoCommand, 0};
 static const CLI_Command_Definition_t xRebootCommand = {"reboot", "reboot:\n\tReboot to a mode. Can be B, G, or A\n", prvRebootCommand, 1};
 static const CLI_Command_Definition_t xUptimeCommand = {"uptime", "uptime:\n\tGet uptime in seconds\n", prvUptimeCommand, 0};
+static const CLI_Command_Definition_t xhexdumpCommand = {"hexdump", "hexdump:\n\tDump data(as hex). Param 1: Address, Param 2: size", prvHexdumpCommand, 2};
 
 /**
  * @brief
