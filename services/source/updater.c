@@ -31,7 +31,7 @@
 #include "printf.h"
 #include "privileged_functions.h"
 
-
+static update_info update = {0};
 
 static char *error = "None";
 /**
@@ -182,7 +182,7 @@ static const CLI_Command_Definition_t xAddrCommand = {"address", "address:\n\tSe
 static const CLI_Command_Definition_t xInfoCommand = {"info", "info:\n\tGet Image info. Image is either G or A\n", prvInfoCommand, 1};
 static const CLI_Command_Definition_t xErrorCommand = {"error", "error:\n\tGet latest error in updater module\n", prvErrorCommand, 0};
 static const CLI_Command_Definition_t xVerifyAppCommand = {"verifyapp", "verifyapp:\n\tVerify application image\n", prvVerifyAppCommand, 0};
-static const CLI_Command_Definition_t xVerifyGoldCommand = {"verifygold", "error:\n\tVerify golden image\n", prvVerifyGoldCommand, 0};
+static const CLI_Command_Definition_t xVerifyGoldCommand = {"verifygold", "verifygold:\n\tVerify golden image\n", prvVerifyGoldCommand, 0};
 
 /**
  * @brief
@@ -213,6 +213,7 @@ SAT_returnState updater_app(csp_packet_t *packet) {
     uint8_t ser_subtype = (uint8_t)packet->data[SUBSERVICE_BYTE];
     int8_t status = 0;
     uint8_t oReturnCheck = 0;
+    int return_packet_length = sizeof(int8_t) + 1;
 
     switch (ser_subtype) {
     case INITIALIZE_UPDATE:
@@ -229,7 +230,9 @@ SAT_returnState updater_app(csp_packet_t *packet) {
         }
 
         oReturnCheck = 0;
+        taskDISABLE_INTERRUPTS();// Disable interrupts because if we are writing to bank 0 and an interrupt is triggered there will be a prefetch abort
         oReturnCheck = Fapi_BlockErase(app_info.addr, app_info.size);
+        taskENABLE_INTERRUPTS();
         if (oReturnCheck) {
             error = "Could not erase block";
             status = -1;
@@ -237,16 +240,22 @@ SAT_returnState updater_app(csp_packet_t *packet) {
         }
 
         app_info.exists = EXISTS_FLAG;
-        eeprom_set_app_info(&app_info);
+        if (app_info.addr < APP_MINIMUM_ADDR) {
+            eeprom_set_golden_info(&app_info);
+        } else {
+            eeprom_set_app_info(&app_info);
+        }
         status = 0;
-        update.initialized = true;
+        update.initialized = EXISTS_FLAG;
         update.start_address = app_info.addr;
         update.next_address = update.start_address;
         update.size = app_info.size;
+        update.crc = app_info.crc;
+        eeprom_set_update_info(&update);
         break;
 
     case PROGRAM_BLOCK :
-        if (update.initialized == false) {
+        if (update.initialized != EXISTS_FLAG) {
             status = -1;
             break;
         }
@@ -263,28 +272,47 @@ SAT_returnState updater_app(csp_packet_t *packet) {
 
         uint8_t bank = address < 0x00200000 ? 0 : 1;
         uint8_t *buf = &packet->data[IN_DATA_BYTE + 6];
-
+        taskDISABLE_INTERRUPTS(); // Disable interrupts because if we are writing to bank 0 and an interrupt is triggered there will be a prefetch abort
         oReturnCheck = Fapi_BlockProgram(bank, flash_destination, (unsigned long)buf, size);
+        taskENABLE_INTERRUPTS();
+
         if (oReturnCheck) {
             error = "Failed to write to block";
             status = -1;
             break;
         }
         update.next_address = address + size;
+        static uint8_t counter = 0;
+        if (update.next_address - update.start_address == update.size) {
+            // update done
+            memset(&update, 0, sizeof(update_info));
+            eeprom_set_update_info(&update);
+            counter = 0;
+            set_packet_length(packet, sizeof(int8_t) + 1);
+            break;
+        }
+        counter++;
+        if (counter % 10 == 0) { // Update the EEPROM information every 10 packets to not wear out the EEPROM
+            eeprom_set_update_info(&update);
+            counter = 0;
+        }
         break;
 
-    case END_UPDATE:
-        break;
+    case GET_PROGRESS:
+        if (update.initialized != EXISTS_FLAG) {
+            status = -1;
+        }
+        cnv8_32(&update.start_address, &packet->data[OUT_DATA_BYTE]);
+        cnv8_32(&update.next_address, &packet->data[OUT_DATA_BYTE+4]);
+        cnv8_16(&update.crc, &packet->data[OUT_DATA_BYTE+8]);
 
-    case RESUME_UPDATE:
+        return_packet_length += (sizeof(int32_t) * 2 + sizeof(int16_t));
         break;
 
     case ERASE_APP:
         eeprom_get_app_info(&app_info);
         app_info.exists = 0;
         eeprom_set_app_info(&app_info);
-        set_packet_length(packet, sizeof(int8_t) + 1);
-        status = 0;
         break;
 
     case VERIFY_APPLICATION_IMAGE:
@@ -292,8 +320,6 @@ SAT_returnState updater_app(csp_packet_t *packet) {
             status = -1;
             break;
         }
-        set_packet_length(packet, sizeof(int8_t) + 1);
-        status = 0;
         break;
 
     case VERIFY_GOLDEN_IMAGE:
@@ -301,18 +327,13 @@ SAT_returnState updater_app(csp_packet_t *packet) {
             status = -1;
             break;
         }
-        set_packet_length(packet, sizeof(int8_t) + 1);
-        status = 0;
         break;
 
     default:
         error = "No such subservice\n";
         status = -1;
     }
-    if (status == -1) {
-        set_packet_length(packet, sizeof(int8_t) + 1);
-    }
-    set_packet_length(packet, sizeof(int8_t) + 1);
+    set_packet_length(packet, return_packet_length);
     memcpy(&packet->data[STATUS_BYTE], &status, sizeof(int8_t));
     return SATR_OK;
 }
@@ -371,6 +392,11 @@ SAT_returnState start_updater_service(void) {
     FreeRTOS_CLIRegisterCommand(&xErrorCommand);
     FreeRTOS_CLIRegisterCommand(&xVerifyAppCommand);
     FreeRTOS_CLIRegisterCommand(&xVerifyGoldCommand);
+
+    eeprom_get_update_info(&update);
+    if (update.initialized != EXISTS_FLAG) {
+        memset(&update, 0, sizeof(update_info));
+    }
 
     if (xTaskCreate((TaskFunction_t)updater_service, "updater_service", 300, NULL, NORMAL_SERVICE_PRIO  | portPRIVILEGE_BIT,
                     &svc_tsk) != pdPASS) {
