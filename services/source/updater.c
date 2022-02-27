@@ -30,28 +30,11 @@
 #include <FreeRTOS-Plus-CLI/FreeRTOS_CLI.h>
 #include "printf.h"
 #include "privileged_functions.h"
+#include "util.h"
 
 static update_info update = {0};
 
 static char *error = "None";
-/**
- * hex2int
- * take a hex string and convert it to a 32bit number (max 8 hex digits)
- */
-uint32_t hex2int(const char *hex) {
-    uint32_t val = 0;
-    while (*hex) {
-        // get current character then increment
-        uint8_t byte = *hex++;
-        // transform hex character to the 4bit equivalent number, using the ascii table indexes
-        if (byte >= '0' && byte <= '9') byte = byte - '0';
-        else if (byte >= 'a' && byte <='f') byte = byte - 'a' + 10;
-        else if (byte >= 'A' && byte <='F') byte = byte - 'A' + 10;
-        // shift 4 to make space for new digit, and add the 4 bits of the new digit
-        val = (val << 4) | (byte & 0xF);
-    }
-    return val;
-}
 
 static BaseType_t prvAddrCommand(char *pcWriteBuffer, size_t xWriteBufferLen, const char *pcCommandString) {
     int32_t image_param_len = 0;
@@ -81,7 +64,6 @@ static BaseType_t prvAddrCommand(char *pcWriteBuffer, size_t xWriteBufferLen, co
         return pdFALSE;
     }
 
-    const char *hex_values = addr_str + 2;
     uint32_t new_address = hex2int(hex_values);
 
     switch (*image) {
@@ -186,13 +168,8 @@ static const CLI_Command_Definition_t xVerifyGoldCommand = {"verifygold", "verif
 
 /**
  * @brief
- *      Attempts to malloc a buffer
- * @detail
- *      This function will try to malloc smaller and smaller buffers until it succeeds
- *      In this case, having any buffer at all is more important than size
- * @param buf
- *      Pointer to the pointer to malloc the buffer in to
- * @return
+ *      allocates a buffer with malloc
+ * @param size
  *      size of buffer that was allocated for
  */
 void *get_buffer(int32_t size) {
