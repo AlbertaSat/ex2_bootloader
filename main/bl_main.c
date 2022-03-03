@@ -70,8 +70,19 @@ static void init_csp() {
 
     /* Init CSP with address and default settings */
     csp_conf_t csp_conf;
-    csp_conf_get_defaults(&csp_conf);
-    csp_conf.address = my_address;
+    csp_conf.address = 1;
+    csp_conf.hostname = "Athena";
+    csp_conf.model = "Ex-Alta2";
+    csp_conf.revision = "2";
+    csp_conf.conn_max =10;
+    csp_conf.conn_queue_length = 10;
+    csp_conf.fifo_length = 25;
+    csp_conf.port_max_bind = 24;
+    csp_conf.rdp_max_window = 20;
+    csp_conf.buffers = 10;
+    csp_conf.buffer_data_size = 1024;
+    csp_conf.conn_dfl_so = CSP_O_NONE;
+
     csp_init(&csp_conf);
     /* Set default route and start router & server */
     csp_route_start_task(1000, 2);
