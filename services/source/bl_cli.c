@@ -101,7 +101,8 @@ static BaseType_t prvEchoCommand(char *pcWriteBuffer, size_t xWriteBufferLen, co
 }
 
 static BaseType_t prvBootInfoCommand(char *pcWriteBuffer, size_t xWriteBufferLen, const char *pcCommandString) {
-    boot_info inf = eeprom_get_boot_info();
+    boot_info inf = {0};
+    eeprom_get_boot_info(&inf);
     char *reset_source_str;
     switch (inf.reason.rstsrc) {
     case POWERON_RESET:
@@ -150,7 +151,8 @@ static BaseType_t prvBootInfoCommand(char *pcWriteBuffer, size_t xWriteBufferLen
 // Small task that reboots the system after 3 second delay
 void vRebootHandler(void *pvParameters) {
     vTaskDelay(3000);
-    sw_reset(REQUESTED);
+    char reboot_type = (char)pvParameters;
+    sw_reset(reboot_type, REQUESTED);
     vTaskDelete(0); // Delete self just in case the reset fails
 }
 
@@ -183,11 +185,22 @@ static BaseType_t prvRebootCommand(char *pcWriteBuffer, size_t xWriteBufferLen, 
             return pdFALSE;
         }
         snprintf(pcWriteBuffer, xWriteBufferLen, "Rebooting in 3 seconds\n");
-        eeprom_set_boot_type(parameter);
-        xTaskCreate(vRebootHandler, "rebooter", 128, NULL, 4, NULL);
+        xTaskCreate(vRebootHandler, "rebooter", 128, *parameter, 4, NULL);
     }
     return pdFALSE;
 }
+
+static BaseType_t prvUptimeCommand(char *pcWriteBuffer, size_t xWriteBufferLen, const char *pcCommandString) {
+    BaseType_t uptime = (xTaskGetTickCount() / 1000);
+    snprintf(pcWriteBuffer, xWriteBufferLen, "%d Seconds\n", uptime);
+    return pdFALSE;
+}
+static BaseType_t prvHexdumpCommand(char *pcWriteBuffer, size_t xWriteBufferLen, const char *pcCommandString) {
+    // TODO: implement this
+
+    return pdFALSE;
+}
+
 
 
 /*
@@ -202,6 +215,8 @@ static const CLI_Command_Definition_t xEchoCommand = {"echo", "echo:\n\tEchoes a
 static const CLI_Command_Definition_t xHelloCommand = {"hello", "hello:\n\tSays hello :)\n", prvHelloCommand, 0};
 static const CLI_Command_Definition_t xBootInfoCommand = {"bootinfo", "bootinfo:\n\tGives a breakdown of the boot info\n", prvBootInfoCommand, 0};
 static const CLI_Command_Definition_t xRebootCommand = {"reboot", "reboot:\n\tReboot to a mode. Can be B, G, or A\n", prvRebootCommand, 1};
+static const CLI_Command_Definition_t xUptimeCommand = {"uptime", "uptime:\n\tGet uptime in seconds\n", prvUptimeCommand, 0};
+static const CLI_Command_Definition_t xhexdumpCommand = {"hexdump", "hexdump:\n\tDump data(as hex). Param 1: Address, Param 2: size", prvHexdumpCommand, 2};
 
 /**
  * @brief
@@ -216,7 +231,7 @@ static const CLI_Command_Definition_t xRebootCommand = {"reboot", "reboot:\n\tRe
  *      success report
  */
 SAT_returnState cli_app(csp_packet_t *packet, csp_conn_t *conn) {
-    uint8_t size = (uint8_t)packet->data[IN_DATA_BYTE]; // reusing subservice byte to store string length
+    uint8_t size = (uint8_t)packet->data[IN_DATA_BYTE];
     bool xMoreDataToFollow;
     char pcOutputString[MAX_OUTPUT_SIZE];
     char pcInputString[MAX_INPUT_SIZE] = {0};
@@ -292,6 +307,7 @@ void register_commands() {
     FreeRTOS_CLIRegisterCommand(&xHelloCommand);
     FreeRTOS_CLIRegisterCommand(&xBootInfoCommand);
     FreeRTOS_CLIRegisterCommand(&xRebootCommand);
+    FreeRTOS_CLIRegisterCommand(&xUptimeCommand);
 }
 
 /**

@@ -192,7 +192,7 @@
 /* SourceId : HL_Fee_SourceId_27 */
 /* DesignId : HL_FEE_DesignId_6*/
 /* Requirements : HL_FEE_SR80 */
-#define TI_FEE_NUMBER_OF_VIRTUAL_SECTORS                   2U  
+#define TI_FEE_NUMBER_OF_VIRTUAL_SECTORS                   16U  
 
 /** @def FEE_NUMBER_OF_VIRTUAL_SECTORS
 *   @brief Alias name for FEE Number Of Virtual Sectors for EEP1
@@ -210,7 +210,7 @@
 /* SourceId : HL_Fee_SourceId_35 */
 /* DesignId : HL_FEE_DesignId_5*/
 /* Requirements : HL_FEE_SR95  */
-#define TI_FEE_NUMBER_OF_BLOCKS                             16U
+#define TI_FEE_NUMBER_OF_BLOCKS                             4U
 
 /** @def TI_FEE_NUMBER_OF_UNCONFIGUREDBLOCKSTOCOPY
 *   @brief Alias name for Fee Number Of Unconfigured Blocks To Copy
@@ -231,7 +231,7 @@
 /** @def TI_FEE_TOTAL_BLOCKS_DATASETS
 *   @brief Alias name for total number of blocks and datasets
 */
-#define TI_FEE_TOTAL_BLOCKS_DATASETS                        16U
+#define TI_FEE_TOTAL_BLOCKS_DATASETS                        4U
 
 /** @def TI_FEE_GENERATE_DEVICEANDVIRTUALSECTORSTRUC
 *   @brief Alias name for Generate Device Specific Structure and Virtual sector Configuration Structure during runtime
