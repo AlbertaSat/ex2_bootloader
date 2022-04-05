@@ -64,7 +64,7 @@ static BaseType_t prvAddrCommand(char *pcWriteBuffer, size_t xWriteBufferLen, co
         return pdFALSE;
     }
 
-    uint32_t new_address = hex2int(hex_values);
+    uint32_t new_address = hex2int(addr_str);
 
     switch (*image) {
     case 'A':
