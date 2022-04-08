@@ -44,6 +44,6 @@ int main(int argc, char* argv[]) {
     fread(data, sizeof(char), size, in);
     
     uint16_t crc = crc16(data, size);
-    printf("crc: %x\r\n", crc);
+    printf(" 0x%x ", crc);
     exit(0);
 }
