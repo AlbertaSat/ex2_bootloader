@@ -97,6 +97,10 @@ Fapi_StatusType eeprom_get_boot_info(boot_info *b);
 
 Fapi_StatusType eeprom_set_boot_info(boot_info *b);
 
+Fapi_StatusType eeprom_set_update_info(update_info *u);
+
+Fapi_StatusType eeprom_get_update_info(update_info *u);
+
 bool verify_application();
 
 bool verify_golden();

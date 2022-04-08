@@ -23,10 +23,6 @@
 #define APPLICATION_DEFINED_PRIVILEGED_FUNCTIONS_H_
 
 #include "FreeRTOS.h"
-#include "HL_reg_system.h"
-#include "bl_eeprom.h"
-#include "bl_flash.h"
-#include "ti_fee.h"
 
 static BaseType_t xRunningPrivileged;
 

@@ -27,8 +27,6 @@
  * Since privileged functions must be implemented in the header per FreeRTOS rules it would
  * fail to compile if they were included in more than one place.
  */
-#include "bl_eeprom.h"
-#include <stdbool.h>
 
 #define raise_privilege raise_privilege_
 #define reset_privilege reset_privilege_

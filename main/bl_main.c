@@ -18,6 +18,7 @@
 #include "csp/csp.h"
 #include <csp/drivers/usart.h>
 #include <csp/interfaces/csp_if_can.h>
+#include <csp/drivers/can.h>
 #include "privileged_functions.h"
 #define INIT_PRIO configMAX_PRIORITIES - 1
 #define INIT_STACK_SIZE 1500
@@ -98,7 +99,7 @@ void bl_init(void *pvParameters) {
     vTaskDelete(0);
 }
 
-char get_boot_type(int rstsrc, boot_info *b_inf) {
+char get_boot_type(resetSource_t rstsrc, boot_info *b_inf) {
 
     char stored_boot_type = b_inf->type;
 
