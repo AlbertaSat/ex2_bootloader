@@ -40,6 +40,12 @@
  *  FreeRTOS+CLI controller
  */
 
+static BaseType_t prvImageTypeCommand(char *pcWriteBuffer, size_t xWriteBufferLen, const char *pcCommandString) {
+    snprintf(pcWriteBuffer, xWriteBufferLen, "Bootloader\r\n");
+    return pdFALSE;
+}
+
+
 static BaseType_t prvHelloCommand(char *pcWriteBuffer, size_t xWriteBufferLen, const char *pcCommandString) {
     snprintf(pcWriteBuffer, xWriteBufferLen, "Hello\r\n");
     return pdFALSE;
@@ -195,6 +201,7 @@ static BaseType_t prvUptimeCommand(char *pcWriteBuffer, size_t xWriteBufferLen, 
     snprintf(pcWriteBuffer, xWriteBufferLen, "%d Seconds\n", uptime);
     return pdFALSE;
 }
+
 static BaseType_t prvHexdumpCommand(char *pcWriteBuffer, size_t xWriteBufferLen, const char *pcCommandString) {
     // TODO: implement this
 
@@ -217,6 +224,7 @@ static const CLI_Command_Definition_t xBootInfoCommand = {"bootinfo", "bootinfo:
 static const CLI_Command_Definition_t xRebootCommand = {"reboot", "reboot:\n\tReboot to a mode. Can be B, G, or A\n", prvRebootCommand, 1};
 static const CLI_Command_Definition_t xUptimeCommand = {"uptime", "uptime:\n\tGet uptime in seconds\n", prvUptimeCommand, 0};
 static const CLI_Command_Definition_t xhexdumpCommand = {"hexdump", "hexdump:\n\tDump data(as hex). Param 1: Address, Param 2: size", prvHexdumpCommand, 2};
+static const CLI_Command_Definition_t xImageTypeCommand = {"imagetype", "imagetype:\n\tGet type of image booted\n", prvImageTypeCommand, 0};
 
 /**
  * @brief
@@ -308,6 +316,7 @@ void register_commands() {
     FreeRTOS_CLIRegisterCommand(&xBootInfoCommand);
     FreeRTOS_CLIRegisterCommand(&xRebootCommand);
     FreeRTOS_CLIRegisterCommand(&xUptimeCommand);
+    FreeRTOS_CLIRegisterCommand(&xImageTypeCommand);
 }
 
 /**
