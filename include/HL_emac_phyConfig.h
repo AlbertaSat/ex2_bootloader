@@ -14,6 +14,7 @@
 /* USER CODE BEGIN (0) */
 /* USER CODE END */
 
+#include "HL_phy_dp83640.h"
 
 
 /* USER CODE BEGIN (1) */
@@ -26,22 +27,17 @@ extern "C" {
 /* USER CODE BEGIN (2) */
 /* USER CODE END */
 
+#define PhyIDGet Dp83640IDGet
+#define PhyLinkStatusGet Dp83640LinkStatusGet
+#define PhyAutoNegotiate Dp83640AutoNegotiate
+#define PhyPartnerAbilityGet Dp83640PartnerAbilityGet
+#define PhyReset Dp83640Reset
+#define PhyEnableLoopback Dp83640EnableLoopback
+#define PhyDisableLoopback Dp83640DisableLoopback
+#define PhyGetTimeStamp Dp83640GetTimeStamp
+#define PhyPartnerSpdGet Dp83640PartnerSpdGet
 
 
-/* USER CODE BEGIN (3) */
-/* USER CODE END */
-/***** Custom API mapping must be done like below *****/
-/*
-#define PhyIDGet CustomIDGet
-#define PhyLinkStatusGet CustomLinkStatusGet
-#define PhyAutoNegotiate CustomAutoNegotiate
-#define PhyPartnerAbilityGet CustomPartnerAbilityGet
-#define PhyReset CustomReset
-#define PhyEnableLoopback CustomEnableLoopback
-#define PhyDisableLoopback CustomDisableLoopback
-#define PhyGetTimeStamp CustomGetTimeStamp
-#define PhySwStrap CustomSwStrap
-*/
 
 #ifdef __cplusplus
 }

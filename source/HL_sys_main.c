@@ -50,6 +50,7 @@
 #include "HL_sys_common.h"
 
 /* USER CODE BEGIN (1) */
+#include "HL_system.h"
 /* USER CODE END */
 
 /** @fn void main(void)
@@ -63,9 +64,13 @@
 /* USER CODE BEGIN (2) */
 /* USER CODE END */
 
+uint8	emacAddress[6U] = 	{0xFFU, 0xFFU, 0xFFU, 0xFFU, 0xFFU, 0xFFU};
+uint32 	emacPhyAddress	=	1U;
+
 int main(void)
 {
 /* USER CODE BEGIN (3) */
+    bl_main(NO_RESET);
 /* USER CODE END */
 
     return 0;

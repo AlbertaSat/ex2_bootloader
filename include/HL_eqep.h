@@ -448,6 +448,104 @@ typedef struct eqep_config_reg
 	uint16 CONFIG_QEINT;
 } eqep_config_reg_t;		
 
+#define EQEP1_QPOSINIT_CONFIGVALUE ((uint32)0x00000000U)
+#define EQEP1_QPOSMAX_CONFIGVALUE ((uint32)0x00000000U)
+#define EQEP1_QPOSCMP_CONFIGVALUE ((uint32)0x00000000U)
+#define EQEP1_QUPRD_CONFIGVALUE ((uint32)0x00000000U)
+#define EQEP1_QWDPRD_CONFIGVALUE ((uint16) 0x0000U)
+#define EQEP1_QDECCTL_CONFIGVALUE ((uint16)((uint16)((uint16)eQEP_DIRECTION_COUNT << 14U)\
+								   | (uint16)((uint16)0U << 13U)\
+								   | (uint16)((uint16)eQEP_INDEX_PIN << 12U)\
+								   | (uint16)((uint16)eQEP_RESOLUTION_1x << 11U)\
+								   | (uint16)((uint16)0U << 10U)\
+								   | (uint16)((uint16)0U << 9U)\
+								   | (uint16)((uint16)0U << 8U)\
+								   | (uint16)((uint16)0U << 7U)\
+								   | (uint16)((uint16)0U << 6U)\
+								   | (uint16)((uint16)0U << 5U)\
+								   | (uint16)0x0000U))
+					 
+#define EQEP1_QEPCTL_CONFIGVALUE ((uint16)((uint16)((uint16)eQEP_MAX_POSITION << 12U)\
+								   | (uint16)((uint16)0U << 11U)\
+								   | (uint16)((uint16)eQEP_DIRECTON_DEPENDENT << 10U)\
+								   | (uint16)((uint16)0U << 9U)\
+								   | (uint16)((uint16)eQEP_RISING_EDGE << 8U)\
+								   | (uint16)((uint16)0U << 7U)\
+								   | (uint16)((uint16)eQEP_RISING_EDGE << 6U)\
+								   | (uint16)((uint16)eQEP_LATCH_RISING_EDGE << 4U)\
+								   | (uint16)((uint16)eQEP_ON_POSITION_COUNTER_READ << 2U)\
+								   | (uint16)0x0000U))
+					 
+#define EQEP1_QCAPCTL_CONFIGVALUE ((uint16)((uint16)((uint16)eQEP_PS_8 << 4U)\
+								   | (uint16)((uint16)eQEP_PS_512)\
+								   | (uint16)0x0000U))
+								   
+#define EQEP1_QPOSCTL_CONFIGVALUE ((uint16)((uint16)((uint16)0U << 15U)\
+								   | (uint16)((uint16)eQEP_QPOSCNT_EQ_QPSCMP << 14U)\
+								   | (uint16)((uint16)eQEP_ACTIVE_HIGH << 13U)\
+								   | (uint16)((uint16)0x000U)\
+								   | (uint16)0x0000U))
+					   
+#define EQEP1_QEINT_CONFIGVALUE ((uint16)((uint16)((uint16)0U << 11U)\
+								   | (uint16)((uint16)0U << 10U)\
+								   | (uint16)((uint16)0U << 9U)\
+								   | (uint16)((uint16)0U << 8U)\
+								   | (uint16)((uint16)0U << 7U)\
+								   | (uint16)((uint16)0U << 6U)\
+								   | (uint16)((uint16)0U << 5U)\
+								   | (uint16)((uint16)0U << 4U)\
+								   | (uint16)((uint16)0U << 3U)\
+								   | (uint16)((uint16)0U << 2U)\
+								   | (uint16)((uint16)0U << 1U)))   
+#define EQEP2_QPOSINIT_CONFIGVALUE ((uint32)0x00000000U)
+#define EQEP2_QPOSMAX_CONFIGVALUE ((uint32)0x00000000U)
+#define EQEP2_QPOSCMP_CONFIGVALUE ((uint32)0U)
+#define EQEP2_QUPRD_CONFIGVALUE ((uint32) 0U)
+#define EQEP2_QWDPRD_CONFIGVALUE ((uint16) 0U)
+#define EQEP2_QDECCTL_CONFIGVALUE ((uint16)((uint16)((uint16)eQEP_DIRECTION_COUNT << 14U)\
+								   | (uint16)((uint16)0U << 13U)\
+								   | (uint16)((uint16)eQEP_INDEX_PIN << 12U)\
+								   | (uint16)((uint16)eQEP_RESOLUTION_1x << 11U)\
+								   | (uint16)((uint16)0U << 10U)\
+								   | (uint16)((uint16)0U << 9U)\
+								   | (uint16)((uint16)0U << 8U)\
+								   | (uint16)((uint16)0U << 7U)\
+								   | (uint16)((uint16)0U << 6U)\
+								   | (uint16)((uint16)0U << 5U)\
+								   | (uint16)0x0000U))
+					 
+#define EQEP2_QEPCTL_CONFIGVALUE ((uint16)((uint16)((uint16)eQEP_MAX_POSITION << 12U)\
+								   | (uint16)((uint16)0U << 11U)\
+								   | (uint16)((uint16)eQEP_DIRECTON_DEPENDENT << 10U)\
+								   | (uint16)((uint16)0U << 9U)\
+								   | (uint16)((uint16)eQEP_RISING_EDGE << 8U)\
+								   | (uint16)((uint16)0U << 7U)\
+								   | (uint16)((uint16)eQEP_RISING_EDGE << 6U)\
+								   | (uint16)((uint16)eQEP_LATCH_RISING_EDGE << 4U)\
+								   | (uint16)((uint16)eQEP_ON_POSITION_COUNTER_READ << 2U)\
+								   | (uint16)0x0000U))
+					 
+#define EQEP2_QCAPCTL_CONFIGVALUE ((uint16)((uint16)((uint16)eQEP_PS_8 << 4U)\
+								   | ((uint16)eQEP_PS_512)\
+								   | (uint16)0x0000U))
+								   
+#define EQEP2_QPOSCTL_CONFIGVALUE ((uint16)((uint16)((uint16)0U << 15U)\
+								   | (uint16)((uint16)eQEP_QPOSCNT_EQ_QPSCMP << 14U)\
+								   | (uint16)((uint16)eQEP_ACTIVE_HIGH << 13U)\
+								   | (uint16)((uint16)0U)\
+								   | (uint16)0x0000U))
+					   
+#define EQEP2_QEINT_CONFIGVALUE ((uint16)((uint16)((uint16)0U << 11U)\
+								   | (uint16)((uint16)0U << 10U)\
+								   | (uint16)((uint16)0U << 9U)\
+								   | (uint16)((uint16)0U << 8U)\
+								   | (uint16)((uint16)0U << 7U)\
+								   | (uint16)((uint16)0U << 6U)\
+								   | (uint16)((uint16)0U << 5U)\
+								   | (uint16)((uint16)0U << 4U)\
+								   | (uint16)((uint16)0U << 3U)\
+								   | (uint16)((uint16)0U << 2U)\
+								   | (uint16)((uint16)0U << 1U)))	
 								   
 /**
  *  @defgroup eQEP eQEP
@@ -604,6 +702,8 @@ void eqepWritePosnCompare (eqepBASE_t *eqep, uint32 posn);
 */
 void 	eqepNotification(eqepBASE_t *eqep,uint16 flags);
 
+void eqep1GetConfigValue(eqep_config_reg_t *config_reg, config_value_type_t type);
+void eqep2GetConfigValue(eqep_config_reg_t *config_reg, config_value_type_t type);
 
 /**@}*/
 #ifdef __cplusplus

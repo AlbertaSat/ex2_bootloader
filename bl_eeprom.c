@@ -7,87 +7,129 @@
 
 #include "bl_eeprom.h"
 #include "ti_fee.h"
+#include "FreeRTOSConfig.h"
+#include "privileged_functions.h"
+#include "bl_flash.h"
+#include "flash_defines.h"
 
 unsigned short crc16();
 
-void sw_reset(SW_RESET_REASON reason) {
-    boot_info info;
-    eeprom_init();
-    info = eeprom_get_boot_info();
+// @param reboot_type: if 0, preserve boot type
+void sw_reset(char reboot_type, SW_RESET_REASON reason) {
+
+    boot_info info = {0};
+    eeprom_get_boot_info(&info);
     info.reason.swr_reason =  reason;
-    eeprom_set_boot_info(info);
-    eeprom_shutdown();
+    if (reason == REQUESTED) {
+        info.attempts = 0; // Reset counter because this is a request
+    }
+    if (reboot_type != 0) {
+        info.type = reboot_type;
+    }
+    eeprom_set_boot_info(&info);
+    raise_privilege();
     systemREG1->SYSECR = (0x10) << 14;
+    reset_privilege();
 }
 
-// Returns false on failure
-bool eeprom_init() {
-    int delayCount = 0;
-    TI_Fee_Init();
-    while (TI_Fee_GetStatus(0) != IDLE) {
-        delayCount++;
-        if (delayCount > 10000) { // timeout after trying this many times
-            return false;
+const SECTORS *eeprom_get_sector_by_block(uint8_t block) {
+    const SECTORS *sector = 0;
+    for (int i = 0; i < NUMBEROFSECTORS; i++) {
+        if (flash_sector[i].bankNumber != 7) {
+            continue;
+        }
+        if (flash_sector[i].sectorNumber == block) {
+            sector = &flash_sector[i];
+            break;
         }
     }
-    return true;
+    return sector;
 }
 
-void eeprom_shutdown() {
-    TI_Fee_Shutdown();
+static Fapi_StatusType eeprom_write(void *dat, uint8_t block, uint32_t size) {
+    // find address of block
+    const SECTORS *sector = eeprom_get_sector_by_block(block);
+    if (sector == 0) {
+        return Fapi_Error_InvalidAddress;
+    }
+
+    void *addr = sector->start;
+    uint32_t sector_size = sector->length;
+
+    if (size > sector_size) {
+        return Fapi_Error_AsyncIncorrectDataBufferLength;
+    }
+    raise_privilege();
+    uint32_t status = Fapi_BlockErase((uint32_t)addr, size);
+    status = Fapi_BlockProgram(7, (uint32_t)addr, (uint32_t)dat, size);
+    reset_privilege();
+    return status;
 }
 
-char eeprom_get_boot_type() {
-    char bootType;
-    TI_Fee_ReadSync(BOOT_TYPE_BLOCK, BOOT_TYPE_OFFSET, (uint8_t *)(&bootType), BOOT_TYPE_LEN);
-    TI_FeeJobResultType res = TI_Fee_GetJobResult(0);
-    return bootType;
+static Fapi_StatusType eeprom_read(void *dat, uint8_t block, uint32_t size) {
+    const SECTORS *sector = eeprom_get_sector_by_block(block);
+    if (sector == 0) {
+        return Fapi_Error_InvalidAddress;
+    }
+    void *addr = sector->start;
+    uint32_t sector_size = sector->length;
+
+    if (sector == 0) {
+        return Fapi_Error_InvalidAddress;
+    }
+
+    if (size > sector_size) {
+        return Fapi_Error_AsyncIncorrectDataBufferLength;
+    }
+    memcpy(dat, addr, size);
+    return Fapi_Status_Success;
 }
 
-void eeprom_set_boot_type(char boot) {
-    TI_Fee_WriteSync(BOOT_TYPE_BLOCK, (uint8_t *)&boot);
-    TI_FeeJobResultType res = TI_Fee_GetJobResult(0);
+Fapi_StatusType eeprom_set_app_info(image_info *i) {
+    Fapi_StatusType status = eeprom_write((void *)i, APP_STATUS_BLOCKNUMBER, sizeof(image_info));
+    return status;
+
 }
 
-void eeprom_set_app_info(image_info i) {
-    TI_Fee_WriteSync(APP_STATUS_BLOCKNUMBER, (uint8_t *)(&i));
-    TI_FeeJobResultType res = TI_Fee_GetJobResult(0);
+Fapi_StatusType eeprom_get_app_info(image_info *i) {
+    Fapi_StatusType status = eeprom_read((void *)i, APP_STATUS_BLOCKNUMBER, sizeof(image_info));
+    return status;
 }
 
-image_info eeprom_get_app_info() {
-    image_info out;
-    TI_Fee_ReadSync(APP_STATUS_BLOCKNUMBER, APP_STATUS_OFFSET, (uint8_t *)(&out), APP_STATUS_LEN);
-    TI_FeeJobResultType res = TI_Fee_GetJobResult(0);
-    return out;
+Fapi_StatusType eeprom_set_golden_info(image_info *i) {
+    Fapi_StatusType status = eeprom_write((void *)i, GOLD_STATUS_BLOCKNUMBER, sizeof(image_info));
+    return status;
+
 }
 
-void eeprom_set_golden_info(image_info i) {
-    TI_Fee_WriteSync(GOLD_STATUS_BLOCKNUMBER, (uint8_t *)&i);
-    TI_FeeJobResultType res = TI_Fee_GetJobResult(0);
+Fapi_StatusType eeprom_get_golden_info(image_info *i) {
+    Fapi_StatusType status = eeprom_read((void *)i, GOLD_STATUS_BLOCKNUMBER, sizeof(image_info));
+    return status;
 }
 
-image_info eeprom_get_golden_info() {
-    image_info out = {0};
-    TI_Fee_ReadSync(GOLD_STATUS_BLOCKNUMBER, GOLD_STATUS_OFFSET, (uint8_t *)(&out), GOLD_STATUS_LEN);
-    TI_FeeJobResultType res = TI_Fee_GetJobResult(0);
-    return out;
+Fapi_StatusType eeprom_get_boot_info(boot_info *b) {
+    Fapi_StatusType status = eeprom_read((void *)b, BOOT_INFO_BLOCKNUMBER, sizeof(boot_info));
+    return status;
 }
 
-boot_info eeprom_get_boot_info() {
-    boot_info out = {0};
-    TI_Fee_ReadSync(BOOT_INFO_BLOCKNUMBER, BOOT_INFO_OFFSET, (uint8_t *)(&out), BOOT_INFO_LEN);
-    TI_FeeJobResultType res = TI_Fee_GetJobResult(0);
-    return out;
+Fapi_StatusType eeprom_set_boot_info(boot_info *b) {
+    Fapi_StatusType status = eeprom_write((void *)b, BOOT_INFO_BLOCKNUMBER, sizeof(boot_info));
+    return status;
 }
 
-void eeprom_set_boot_info(boot_info b) {
-    TI_Fee_WriteSync(BOOT_INFO_BLOCKNUMBER, (uint8_t *)&b);
-    TI_FeeJobResultType res = TI_Fee_GetJobResult(0);
+Fapi_StatusType eeprom_set_update_info(update_info *u) {
+    Fapi_StatusType status = eeprom_write((void *)u, UPDATE_INFO_BLOCKNUMBER, UPDATE_INFO_LEN);
+    return status;
+}
+
+Fapi_StatusType eeprom_get_update_info(update_info *u) {
+    Fapi_StatusType status = eeprom_read((void *)u, UPDATE_INFO_BLOCKNUMBER, UPDATE_INFO_LEN);
+    return status;
 }
 
 bool verify_application() {
     image_info app_info = {0};
-    app_info = eeprom_get_app_info();
+    eeprom_get_app_info(&app_info);
     if (app_info.exists == EXISTS_FLAG) {
         if (crc16((char *)app_info.addr, app_info.size) == app_info.crc) {
             return true;
@@ -96,7 +138,8 @@ bool verify_application() {
 }
 
 bool verify_golden() {
-    image_info app_info = eeprom_get_golden_info();
+    image_info app_info = {0};
+    eeprom_get_golden_info(&app_info);
     if (app_info.exists == EXISTS_FLAG) {
         if (crc16((char *)app_info.addr, app_info.size) == app_info.crc) {
             return true;

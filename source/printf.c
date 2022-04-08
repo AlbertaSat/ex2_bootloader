@@ -32,12 +32,12 @@
 
 #include <stdbool.h>
 #include <stdint.h>
+#include <system.h>
 
 #include "printf.h"
 
 #include "HL_sci.h"
 
-#include "bl_config.h"
 
 // define this globally (e.g. gcc -DPRINTF_INCLUDE_CONFIG_H ...) to include the
 // printf_config.h header file
@@ -120,8 +120,8 @@
 #include <float.h>
 #endif
 
-void __putchar(char character) {
-    sciSendByte(UART, character);
+int __putchar(int character) {
+    sciSendByte(PRINTF_SCI, character);
 }
 
 // output function type

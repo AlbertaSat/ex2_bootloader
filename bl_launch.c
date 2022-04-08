@@ -6,15 +6,15 @@
  */
 
 #include "bl_launch.h"
-#include "bl_config.h"
 #include <stdbool.h>
+#include <system.h>
 #include "bl_eeprom.h"
 
 bool start_application(void) {
     if (verify_application() == true) {
-        image_info app_info = eeprom_get_app_info();
+        image_info app_info = {0};
+        eeprom_get_app_info(&app_info);
         uint32_t JumpAddress = (uint32_t)app_info.addr;
-        eeprom_shutdown();
         ((void (*)(void))JumpAddress)();
     }
     return false;
@@ -22,9 +22,9 @@ bool start_application(void) {
 
 void start_golden() {
     if (verify_golden() == true) {
-        image_info app_info = eeprom_get_golden_info();
+        image_info app_info = {0};
+        eeprom_get_golden_info(&app_info);
         uint32_t JumpAddress = (uint32_t)app_info.addr;
-        eeprom_shutdown();
         ((void (*)(void))JumpAddress)();
     }
 }

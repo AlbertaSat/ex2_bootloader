@@ -95,10 +95,10 @@ typedef enum config_value_type
 
 
 #ifndef __little_endian__
-#define __little_endian__  1
+#define __little_endian__  0
 #endif
 #ifndef __LITTLE_ENDIAN__
-#define __LITTLE_ENDIAN__  1
+#define __LITTLE_ENDIAN__  0
 #endif
 
 /* USER CODE BEGIN (1) */

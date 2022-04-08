@@ -192,7 +192,7 @@
 /* SourceId : HL_Fee_SourceId_27 */
 /* DesignId : HL_FEE_DesignId_6*/
 /* Requirements : HL_FEE_SR80 */
-#define TI_FEE_NUMBER_OF_VIRTUAL_SECTORS                   2U  
+#define TI_FEE_NUMBER_OF_VIRTUAL_SECTORS                   16U  
 
 /** @def FEE_NUMBER_OF_VIRTUAL_SECTORS
 *   @brief Alias name for FEE Number Of Virtual Sectors for EEP1
