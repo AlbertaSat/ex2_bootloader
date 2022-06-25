@@ -20,8 +20,13 @@
 #include <csp/interfaces/csp_if_can.h>
 #include <csp/drivers/can.h>
 #include "privileged_functions.h"
+#include "crypto.h"
+#include <csp/interfaces/csp_if_sdr.h>
+
 #define INIT_PRIO configMAX_PRIORITIES - 1
 #define INIT_STACK_SIZE 1500
+
+#define CSP_USE_SDR
 
 uint32_t JumpAddress;
 void get_software_Version(void);
@@ -35,32 +40,69 @@ void bl_main(resetSource_t rstsrc);
  * with no VIA address
  */
 static inline bool init_csp_interface() {
-    csp_iface_t *uart_iface = NULL;
-    csp_iface_t *can_iface = NULL;
-    csp_usart_conf_t conf = {.device = "UART",
-                             .baudrate = 115200, /* supported on all platforms */
-                             .databits = 8,
-                             .stopbits = 2,
-                             .paritysetting = 0,
-                             .checkparity = 0};
+    int error;
 
-    int error = csp_can_open_and_add_interface("CAN", &can_iface);
-    if (error != CSP_ERR_NONE) {
-        return false;
-    }
+ #ifndef EPS_IS_STUBBED
+     csp_iface_t *can_iface = NULL;
+     error = csp_can_open_and_add_interface("CAN", &can_iface);
+     if (error != CSP_ERR_NONE) {
+         return SATR_ERROR;
+     }
+ #endif /* EPS_IS_STUBBED */
 
-    error = csp_usart_open_and_add_kiss_interface(&conf, CSP_IF_KISS_DEFAULT_NAME, &uart_iface);
-    if (error != CSP_ERR_NONE) {
-        return false;
-    }
+ #if !defined(CSP_USE_KISS) && !defined(CSP_USE_SDR) || defined(CSP_USE_KISS) && defined(CSP_USE_SDR)
+ #error "CSP must use one of KISS or SDR"
+ #endif /* !defined(CSP_USE_KISS) && !defined(CSP_USE_SDR) || defined(CSP_USE_KISS) && defined(CSP_USE_SDR) */
 
-#ifndef EPS_IS_STUBBED
-    csp_rtable_load("16 KISS, 4 CAN, 10 KISS");
-#else
-    csp_rtable_load("16 KISS, 10 KISS");
-#endif
+ #if defined(CSP_USE_KISS)
+     csp_usart_conf_t conf = {.device = "UART",
+                              .baudrate = 115200, /* supported on all platforms */
+                              .databits = 8,
+                              .stopbits = 2,
+                              .paritysetting = 0,
+                              .checkparity = 0};
 
-    return true;
+     csp_iface_t *uart_iface = NULL;
+     error = csp_usart_open_and_add_kiss_interface(&conf, CSP_IF_KISS_DEFAULT_NAME, &uart_iface);
+     if (error != CSP_ERR_NONE) {
+         return SATR_ERROR;
+     }
+
+     char *gs_if_name = CSP_IF_KISS_DEFAULT_NAME;
+     int gs_if_addr = 16;
+
+ #endif /* defined(CSP_USE_KISS) */
+
+ #if defined(CSP_USE_SDR)
+
+ #ifdef SDR_TEST
+     char * gs_if_name = "LOOPBACK";
+     int gs_if_addr = 23;
+ #else
+     char * gs_if_name = "UHF";
+     int gs_if_addr = 16;
+ #endif /* SDR_TEST */
+
+     csp_sdr_conf_t uhf_conf = {    .mtu = SDR_UHF_MAX_MTU,
+                                    .baudrate = SDR_UHF_9600_BAUD,
+                                    .uart_baudrate = 115200 };
+     error = csp_sdr_open_and_add_interface(&uhf_conf, gs_if_name, NULL);
+     if (error != CSP_ERR_NONE) {
+         return SATR_ERROR;
+     }
+
+ #endif /* defined(CSP_USE_SDR) */
+
+     char rtable[128] = {0};
+     snprintf(rtable, 128, "%d %s", gs_if_addr, gs_if_name);
+
+ #ifndef EPS_IS_STUBBED
+     snprintf(rtable, 128, "%s, 4 CAN", rtable);
+ #endif /* EPS_IS_STUBBED */
+
+     csp_rtable_load(rtable);
+
+     return SATR_OK;
 }
 
 /**
@@ -72,7 +114,7 @@ static void init_csp() {
     /* Init CSP with address and default settings */
     csp_conf_t csp_conf;
     csp_conf.address = 1;
-    csp_conf.hostname = "Athena";
+    csp_conf.hostname = "Athena_BL";
     csp_conf.model = "Ex-Alta2";
     csp_conf.revision = "2";
     csp_conf.conn_max =10;
@@ -88,12 +130,15 @@ static void init_csp() {
     /* Set default route and start router & server */
     csp_route_start_task(1000, 2);
     init_csp_interface();
+    char *test_key;
+    int key_len;
+    get_crypto_key(HMAC_KEY, &test_key, &key_len);
+    csp_hmac_set_key(test_key, key_len);
     return;
 }
 
 void bl_init(void *pvParameters) {
     printf("Hello world!\n");
-    //xTaskCreate(eeprom_spin, "eprm_spin", 128, NULL, INIT_PRIO | portPRIVILEGE_BIT, NULL);
     init_csp();
     start_service_server();
     vTaskDelete(0);

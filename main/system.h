@@ -36,7 +36,7 @@
 //*****************************************************************************
 
 #define CSP_SCI              sciREG3   /* Use appropriate UART port */
-#define PRINTF_SCI                 sciREG1
+#define PRINTF_SCI                 NULL
 #define BUFFER_SIZE             64       /*words in the data buffer used for receiving packets*/
 #define NORMAL_SERVICE_PRIO (tskIDLE_PRIORITY + 1)
 

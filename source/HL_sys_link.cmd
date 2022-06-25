@@ -57,7 +57,7 @@ MEMORY
 {
     VECTORS (X)  : origin=0x00000000 length=0x00000040
     KERNEL  (RX) : origin=0x00000040 length=0x00008000
-    BOOTFLASH (RX) : origin=end(KERNEL) length = 0x00030000
+    BOOTFLASH (RX) : origin=end(KERNEL) length = 0x36000
     FLASH0  (RX) : origin=end(BOOTFLASH) length=0x001F7FE0 - 0x00030000 - 0x00008000 - 0x00000040
     FLASH1  (RX) : origin=0x00200000 length=0x00200000
     RAMINTVECS (RWX) : origin=0x08000000 length = 0x20
@@ -92,6 +92,8 @@ SECTIONS
     FEE_TEXT_SECTION align(32) : {} > BOOTFLASH
     FEE_CONST_SECTION align(32): {} > BOOTFLASH
     FEE_DATA_SECTION : {} > RAM
+    .ARM.extab : {} > BOOTFLASH
+    .ARM.exidx : {} > BOOTFLASH
 
 	flashAPI :
 	    {
