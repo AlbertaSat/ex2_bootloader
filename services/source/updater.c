@@ -330,7 +330,7 @@ SAT_returnState updater_app(csp_packet_t *packet) {
 void updater_service(void *param) {
 
     csp_socket_t *sock;
-    sock = csp_socket(CSP_SO_RDPREQ); // require RDP connection
+    sock = csp_socket(CSP_SO_HMACREQ); // require RDP connection
     csp_bind(sock, TC_UPDATER_SERVICE);
     csp_listen(sock, SERVICE_BACKLOG_LEN);
     for (;;) {
