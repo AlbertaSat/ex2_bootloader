@@ -22,6 +22,8 @@
 #ifndef CLI_H_
 #define CLI_H_
 
+#include "main/system.h"
+
 #define CLI_SVC_SIZE 1000
 
 SAT_returnState start_cli_service(void);

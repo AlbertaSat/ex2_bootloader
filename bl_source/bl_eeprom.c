@@ -6,11 +6,11 @@
  */
 
 #include "bl_eeprom.h"
-#include "ti_fee.h"
 #include "FreeRTOSConfig.h"
-#include "privileged_functions.h"
 #include "bl_flash.h"
 #include "flash_defines.h"
+#include "privileged_functions.h"
+#include "ti_fee.h"
 
 unsigned short crc16();
 
@@ -19,7 +19,7 @@ void sw_reset(char reboot_type, SW_RESET_REASON reason) {
 
     boot_info info = {0};
     eeprom_get_boot_info(&info);
-    info.reason.swr_reason =  reason;
+    info.reason.swr_reason = reason;
     if (reason == REQUESTED) {
         info.attempts = 0; // Reset counter because this is a request
     }
@@ -88,7 +88,6 @@ static Fapi_StatusType eeprom_read(void *dat, uint8_t block, uint32_t size) {
 Fapi_StatusType eeprom_set_app_info(image_info *i) {
     Fapi_StatusType status = eeprom_write((void *)i, APP_STATUS_BLOCKNUMBER, sizeof(image_info));
     return status;
-
 }
 
 Fapi_StatusType eeprom_get_app_info(image_info *i) {
@@ -99,7 +98,6 @@ Fapi_StatusType eeprom_get_app_info(image_info *i) {
 Fapi_StatusType eeprom_set_golden_info(image_info *i) {
     Fapi_StatusType status = eeprom_write((void *)i, GOLD_STATUS_BLOCKNUMBER, sizeof(image_info));
     return status;
-
 }
 
 Fapi_StatusType eeprom_get_golden_info(image_info *i) {
@@ -133,8 +131,10 @@ bool verify_application() {
     if (app_info.exists == EXISTS_FLAG) {
         if (crc16((char *)app_info.addr, app_info.size) == app_info.crc) {
             return true;
-        } else return false;
-    } else return false;
+        } else
+            return false;
+    } else
+        return false;
 }
 
 bool verify_golden() {
@@ -143,30 +143,26 @@ bool verify_golden() {
     if (app_info.exists == EXISTS_FLAG) {
         if (crc16((char *)app_info.addr, app_info.size) == app_info.crc) {
             return true;
-        } else return false;
-    } else return false;
+        } else
+            return false;
+    } else
+        return false;
 }
 
-unsigned short crc16( char *ptr, int count)
-{
-   uint16_t crc;
-   char i;
-   crc = 0;
-   while (--count >= 0)
-   {
-      crc = crc ^  ( ((int)*ptr)  << 8  ) ;
-      ptr=ptr+1;
-      i = 8;
-      do
-      {
-         if (crc & 0x8000)
-            crc = (crc << 1) ^ 0x1021;
-         else
-            crc = crc << 1;
-      } while(--i);
-   }
-   return (crc);
+unsigned short crc16(char *ptr, int count) {
+    uint16_t crc;
+    char i;
+    crc = 0;
+    while (--count >= 0) {
+        crc = crc ^ (((int)*ptr) << 8);
+        ptr = ptr + 1;
+        i = 8;
+        do {
+            if (crc & 0x8000)
+                crc = (crc << 1) ^ 0x1021;
+            else
+                crc = crc << 1;
+        } while (--i);
+    }
+    return (crc);
 }
-
-
-
