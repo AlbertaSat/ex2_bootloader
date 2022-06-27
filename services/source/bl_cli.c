@@ -24,8 +24,8 @@
 #include "printf.h"
 #include "services.h"
 #include "system.h"
-#include <FreeRTOS-Plus-CLI/FreeRTOS_CLI.h>
 #include <FreeRTOS.h>
+#include <FreeRTOS-Plus-CLI/FreeRTOS_CLI.h>
 #include <csp/csp.h>
 #include <csp/csp_endian.h>
 #include <os_task.h>
