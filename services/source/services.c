@@ -20,10 +20,10 @@
 #include "services.h"
 #include "printf.h"
 
+#include "bl_cli.h"
 #include <FreeRTOS.h>
 #include <csp/csp.h>
 #include <os_task.h>
-#include "bl_cli.h"
 
 void csp_server(void *parameters);
 SAT_returnState start_service_server(void);

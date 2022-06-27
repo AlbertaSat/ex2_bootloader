@@ -20,17 +20,17 @@
 #include "updater.h"
 #include "bl_eeprom.h"
 #include "bl_flash.h"
+#include "printf.h"
+#include "privileged_functions.h"
+#include "service_utilities.h"
 #include "services.h"
+#include "util.h"
+#include <FreeRTOS-Plus-CLI/FreeRTOS_CLI.h>
 #include <FreeRTOS.h>
 #include <csp/csp.h>
 #include <csp/csp_endian.h>
 #include <main/system.h>
 #include <os_task.h>
-#include "service_utilities.h"
-#include <FreeRTOS-Plus-CLI/FreeRTOS_CLI.h>
-#include "printf.h"
-#include "privileged_functions.h"
-#include "util.h"
 
 static update_info update = {0};
 
@@ -39,12 +39,12 @@ static char *error = "None";
 static BaseType_t prvAddrCommand(char *pcWriteBuffer, size_t xWriteBufferLen, const char *pcCommandString) {
     int32_t image_param_len = 0;
     const char *image = FreeRTOS_CLIGetParameter(
-                    /* The command string itself. */
-                    pcCommandString,
-                    /* Return the next parameter. */
-                    1,
-                    /* Store the parameter string length. */
-                    &image_param_len);
+        /* The command string itself. */
+        pcCommandString,
+        /* Return the next parameter. */
+        1,
+        /* Store the parameter string length. */
+        &image_param_len);
     if (image_param_len > 1) {
         snprintf(pcWriteBuffer, xWriteBufferLen, "Invalid Image Type\n");
         return pdFALSE;
@@ -52,12 +52,12 @@ static BaseType_t prvAddrCommand(char *pcWriteBuffer, size_t xWriteBufferLen, co
 
     int32_t addr_str_len;
     const char *addr_str = FreeRTOS_CLIGetParameter(
-                    /* The command string itself. */
-                    pcCommandString,
-                    /* Return the next parameter. */
-                    2,
-                    /* Store the parameter string length. */
-                    &addr_str_len);
+        /* The command string itself. */
+        pcCommandString,
+        /* Return the next parameter. */
+        2,
+        /* Store the parameter string length. */
+        &addr_str_len);
 
     if (addr_str_len > 10) {
         snprintf(pcWriteBuffer, xWriteBufferLen, "Hex string too long\n");
@@ -67,8 +67,7 @@ static BaseType_t prvAddrCommand(char *pcWriteBuffer, size_t xWriteBufferLen, co
     uint32_t new_address = hex2int(addr_str);
 
     switch (*image) {
-    case 'A':
-    {
+    case 'A': {
         if (new_address < APP_MINIMUM_ADDR) {
             snprintf(pcWriteBuffer, xWriteBufferLen, "Address too low for application\n");
             return pdFALSE;
@@ -79,8 +78,7 @@ static BaseType_t prvAddrCommand(char *pcWriteBuffer, size_t xWriteBufferLen, co
         eeprom_set_app_info(&addr_info);
         break;
     }
-    case 'G':
-    {
+    case 'G': {
         if (new_address < GOLD_MINIMUM_ADDR) {
             snprintf(pcWriteBuffer, xWriteBufferLen, "Address too low for golden image\n");
             return pdFALSE;
@@ -102,12 +100,12 @@ static BaseType_t prvAddrCommand(char *pcWriteBuffer, size_t xWriteBufferLen, co
 static BaseType_t prvInfoCommand(char *pcWriteBuffer, size_t xWriteBufferLen, const char *pcCommandString) {
     int32_t image_param_len = 0;
     const char *image = FreeRTOS_CLIGetParameter(
-                    /* The command string itself. */
-                    pcCommandString,
-                    /* Return the next parameter. */
-                    1,
-                    /* Store the parameter string length. */
-                    &image_param_len);
+        /* The command string itself. */
+        pcCommandString,
+        /* Return the next parameter. */
+        1,
+        /* Store the parameter string length. */
+        &image_param_len);
     if (image_param_len > 1) {
         snprintf(pcWriteBuffer, xWriteBufferLen, "Invalid Image Type\n");
         return pdFALSE;
@@ -125,13 +123,9 @@ static BaseType_t prvInfoCommand(char *pcWriteBuffer, size_t xWriteBufferLen, co
         snprintf(pcWriteBuffer, xWriteBufferLen, "Invalid Image Type\n");
         return pdFALSE;
     }
-    snprintf(pcWriteBuffer, xWriteBufferLen, "Exists: %d\nSize: %d\nAddr: 0x%08X\nCrc: %04X\n",
-             info.exists,
-             info.size,
-             info.addr,
-             info.crc);
+    snprintf(pcWriteBuffer, xWriteBufferLen, "Exists: %d\nSize: %d\nAddr: 0x%08X\nCrc: %04X\n", info.exists,
+             info.size, info.addr, info.crc);
     return pdFALSE;
-
 }
 
 static BaseType_t prvErrorCommand(char *pcWriteBuffer, size_t xWriteBufferLen, const char *pcCommandString) {
@@ -139,7 +133,6 @@ static BaseType_t prvErrorCommand(char *pcWriteBuffer, size_t xWriteBufferLen, c
     error = "None";
     return pdFALSE;
 }
-
 
 static BaseType_t prvVerifyAppCommand(char *pcWriteBuffer, size_t xWriteBufferLen, const char *pcCommandString) {
     if (verify_application()) {
@@ -160,11 +153,19 @@ static BaseType_t prvVerifyGoldCommand(char *pcWriteBuffer, size_t xWriteBufferL
     return pdFALSE;
 }
 
-static const CLI_Command_Definition_t xAddrCommand = {"address", "address:\n\tSet address of image. Image is either G or A\n\tFirst parameter is image type, second parameter is address as hex\n", prvAddrCommand, 2};
-static const CLI_Command_Definition_t xInfoCommand = {"info", "info:\n\tGet Image info. Image is either G or A\n", prvInfoCommand, 1};
-static const CLI_Command_Definition_t xErrorCommand = {"error", "error:\n\tGet latest error in updater module\n", prvErrorCommand, 0};
-static const CLI_Command_Definition_t xVerifyAppCommand = {"verifyapp", "verifyapp:\n\tVerify application image\n", prvVerifyAppCommand, 0};
-static const CLI_Command_Definition_t xVerifyGoldCommand = {"verifygold", "verifygold:\n\tVerify golden image\n", prvVerifyGoldCommand, 0};
+static const CLI_Command_Definition_t xAddrCommand = {
+    "address",
+    "address:\n\tSet address of image. Image is either G or A\n\tFirst "
+    "parameter is image type, second parameter is address as hex\n",
+    prvAddrCommand, 2};
+static const CLI_Command_Definition_t xInfoCommand = {"info", "info:\n\tGet Image info. Image is either G or A\n",
+                                                      prvInfoCommand, 1};
+static const CLI_Command_Definition_t xErrorCommand = {"error", "error:\n\tGet latest error in updater module\n",
+                                                       prvErrorCommand, 0};
+static const CLI_Command_Definition_t xVerifyAppCommand = {"verifyapp", "verifyapp:\n\tVerify application image\n",
+                                                           prvVerifyAppCommand, 0};
+static const CLI_Command_Definition_t xVerifyGoldCommand = {"verifygold", "verifygold:\n\tVerify golden image\n",
+                                                            prvVerifyGoldCommand, 0};
 
 /**
  * @brief
@@ -172,9 +173,7 @@ static const CLI_Command_Definition_t xVerifyGoldCommand = {"verifygold", "verif
  * @param size
  *      size of buffer that was allocated for
  */
-void *get_buffer(int32_t size) {
-    return pvPortMalloc(size);
-}
+void *get_buffer(int32_t size) { return pvPortMalloc(size); }
 
 /**
  * @brief
@@ -207,7 +206,9 @@ SAT_returnState updater_app(csp_packet_t *packet) {
         }
 
         oReturnCheck = 0;
-        taskDISABLE_INTERRUPTS();// Disable interrupts because if we are writing to bank 0 and an interrupt is triggered there will be a prefetch abort
+        taskDISABLE_INTERRUPTS(); // Disable interrupts because if we are writing to
+                                  // bank 0 and an interrupt is triggered there will
+                                  // be a prefetch abort
         oReturnCheck = Fapi_BlockErase(app_info.addr, app_info.size);
         taskENABLE_INTERRUPTS();
         if (oReturnCheck) {
@@ -231,7 +232,7 @@ SAT_returnState updater_app(csp_packet_t *packet) {
         eeprom_set_update_info(&update);
         break;
 
-    case PROGRAM_BLOCK :
+    case PROGRAM_BLOCK:
         if (update.initialized != EXISTS_FLAG) {
             status = -1;
             break;
@@ -249,7 +250,9 @@ SAT_returnState updater_app(csp_packet_t *packet) {
 
         uint8_t bank = address < 0x00200000 ? 0 : 1;
         uint8_t *buf = &packet->data[IN_DATA_BYTE + 6];
-        taskDISABLE_INTERRUPTS(); // Disable interrupts because if we are writing to bank 0 and an interrupt is triggered there will be a prefetch abort
+        taskDISABLE_INTERRUPTS(); // Disable interrupts because if we are writing to
+                                  // bank 0 and an interrupt is triggered there will
+                                  // be a prefetch abort
         oReturnCheck = Fapi_BlockProgram(bank, flash_destination, (unsigned long)buf, size);
         taskENABLE_INTERRUPTS();
 
@@ -269,7 +272,8 @@ SAT_returnState updater_app(csp_packet_t *packet) {
             break;
         }
         counter++;
-        if (counter % 10 == 0) { // Update the EEPROM information every 10 packets to not wear out the EEPROM
+        if (counter % 10 == 0) { // Update the EEPROM information every 10 packets
+                                 // to not wear out the EEPROM
             eeprom_set_update_info(&update);
             counter = 0;
         }
@@ -280,8 +284,8 @@ SAT_returnState updater_app(csp_packet_t *packet) {
             status = -1;
         }
         cnv8_32(&update.start_address, &packet->data[OUT_DATA_BYTE]);
-        cnv8_32(&update.next_address, &packet->data[OUT_DATA_BYTE+4]);
-        cnv8_16(&update.crc, &packet->data[OUT_DATA_BYTE+8]);
+        cnv8_32(&update.next_address, &packet->data[OUT_DATA_BYTE + 4]);
+        cnv8_16(&update.crc, &packet->data[OUT_DATA_BYTE + 8]);
 
         return_packet_length += (sizeof(int32_t) * 2 + sizeof(int16_t));
         break;
@@ -375,8 +379,8 @@ SAT_returnState start_updater_service(void) {
         memset(&update, 0, sizeof(update_info));
     }
 
-    if (xTaskCreate((TaskFunction_t)updater_service, "updater_service", 300, NULL, NORMAL_SERVICE_PRIO  | portPRIVILEGE_BIT,
-                    &svc_tsk) != pdPASS) {
+    if (xTaskCreate((TaskFunction_t)updater_service, "updater_service", 300, NULL,
+                    NORMAL_SERVICE_PRIO | portPRIVILEGE_BIT, &svc_tsk) != pdPASS) {
         ex2_log("FAILED TO CREATE TASK updater_service\n");
         return SATR_ERROR;
     }

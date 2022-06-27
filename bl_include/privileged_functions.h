@@ -23,9 +23,10 @@
 #define PRIVILEGED_FUNCTIONS_H_
 
 /*
- * This file works as a wrapper to allow including privileged functions in multiple files
- * Since privileged functions must be implemented in the header per FreeRTOS rules it would
- * fail to compile if they were included in more than one place.
+ * This file works as a wrapper to allow including privileged functions in
+ * multiple files Since privileged functions must be implemented in the header
+ * per FreeRTOS rules it would fail to compile if they were included in more
+ * than one place.
  */
 
 #define raise_privilege raise_privilege_

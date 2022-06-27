@@ -6,9 +6,9 @@
  */
 
 #include "bl_launch.h"
+#include "bl_eeprom.h"
 #include <stdbool.h>
 #include <system.h>
-#include "bl_eeprom.h"
 
 bool start_application(void) {
     if (verify_application() == true) {
