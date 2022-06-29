@@ -22,8 +22,8 @@
 
 //*****************************************************************************
 // The starting address of the application.  This must be a multiple of 32K(sector size)
-// bytes (making it aligned to a page boundary), and can not be 0 (the first sector is 
-// boot loader). 
+// bytes (making it aligned to a page boundary), and can not be 0 (the first sector is
+// boot loader).
 //
 // The flash image of the boot loader must not be larger than this value.
 //*****************************************************************************
@@ -34,21 +34,25 @@
 // It contains Application Start Address, Application Image Size, etc
 //
 //*****************************************************************************
+#if defined(IS_ATHENA)
+#define CSP_SCI sciREG2 // UART2
+#else
+#define CSP_SCI sciREG3 /* Use appropriate UART port */
+#endif
 
-#define CSP_SCI              sciREG3   /* Use appropriate UART port */
-#define PRINTF_SCI                 NULL
-#define BUFFER_SIZE             64       /*words in the data buffer used for receiving packets*/
+#define PRINTF_SCI NULL
+#define BUFFER_SIZE 64 /*words in the data buffer used for receiving packets*/
 #define NORMAL_SERVICE_PRIO (tskIDLE_PRIORITY + 1)
 
 typedef enum {
-  SATR_PKT_ILLEGAL_APPID = 0,
-  SATR_PKT_ILLEGAL_SUBSERVICE,
-  SATR_OK,
-  SATR_ERROR,
-  SATR_RETURN_FROM_TASK,
-  SATR_BUFFER_ERR,
-  /*LAST*/
-  SATR_LAST
+    SATR_PKT_ILLEGAL_APPID = 0,
+    SATR_PKT_ILLEGAL_SUBSERVICE,
+    SATR_OK,
+    SATR_ERROR,
+    SATR_RETURN_FROM_TASK,
+    SATR_BUFFER_ERR,
+    /*LAST*/
+    SATR_LAST
 } SAT_returnState;
 //#define   DEBUG_MSG_L3
 #endif // __BL_CONFIG_H__
