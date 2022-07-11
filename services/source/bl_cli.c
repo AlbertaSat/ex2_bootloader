@@ -172,6 +172,47 @@ static BaseType_t prvBootInfoCommand(char *pcWriteBuffer, size_t xWriteBufferLen
     return pdFALSE;
 }
 
+static BaseType_t prvSetCommand(char *pcWriteBuffer, size_t xWriteBufferLen, const char *pcCommandString) {
+    int parameter_len;
+    const char *parameter = FreeRTOS_CLIGetParameter(
+        /* The command string itself. */
+        pcCommandString,
+        /* Return the next parameter. */
+        1,
+        /* Store the parameter string length. */
+        &parameter_len);
+    if (parameter_len > 1) {
+        snprintf(pcWriteBuffer, xWriteBufferLen, "Invalid boot Type\n");
+    } else {
+        switch (*parameter) {
+        case 'A':
+            if (verify_application() == false) {
+                snprintf(pcWriteBuffer, xWriteBufferLen, "Application invalid\n");
+                return pdFALSE;
+            }
+            break;
+        case 'G':
+            if (verify_golden() == false) {
+                snprintf(pcWriteBuffer, xWriteBufferLen, "Golden Image invalid\n");
+                return pdFALSE;
+            }
+            break;
+        case 'B':
+            break;
+        default:
+            snprintf(pcWriteBuffer, xWriteBufferLen, "Invalid boot Type\n");
+            return pdFALSE;
+        }
+        snprintf(pcWriteBuffer, xWriteBufferLen, "Setting boot type to %c\n", *parameter);
+        boot_info info = {0};
+
+        eeprom_get_boot_info(&info);
+        info.type = *parameter;
+        eeprom_set_boot_info(&info);
+    }
+    return pdFALSE;
+}
+
 // Small task that reboots the system after 3 second delay
 void vRebootHandler(void *pvParameters) {
     vTaskDelay(3000);
@@ -249,6 +290,8 @@ static const CLI_Command_Definition_t xhexdumpCommand = {
     "hexdump", "hexdump:\n\tDump data(as hex). Param 1: Address, Param 2: size", prvHexdumpCommand, 2};
 static const CLI_Command_Definition_t xImageTypeCommand = {"imagetype", "imagetype:\n\tGet type of image booted\n",
                                                            prvImageTypeCommand, 0};
+static const CLI_Command_Definition_t xSetCommand = {
+    "set", "set:\n\tSet the next boot without rebooting. Can be B, G, or A\n", prvSetCommand, 1};
 
 /**
  * @brief
@@ -343,6 +386,7 @@ void register_commands() {
     FreeRTOS_CLIRegisterCommand(&xRebootCommand);
     FreeRTOS_CLIRegisterCommand(&xUptimeCommand);
     FreeRTOS_CLIRegisterCommand(&xImageTypeCommand);
+    FreeRTOS_CLIRegisterCommand(&xSetCommand);
 }
 
 /**
