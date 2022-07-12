@@ -237,6 +237,8 @@ SAT_returnState updater_app(csp_packet_t *packet) {
             status = -1;
             break;
         }
+        uint16_t crc; // CRC for the data portion of the packet
+        cnv8_16(&packet->data[IN_DATA_BYTE + 6], &crc);
         uint16_t size;
         cnv8_16(&packet->data[IN_DATA_BYTE + 4], &size);
         uint32_t address;
@@ -249,7 +251,13 @@ SAT_returnState updater_app(csp_packet_t *packet) {
         uint32_t flash_destination = address;
 
         uint8_t bank = address < 0x00200000 ? 0 : 1;
-        uint8_t *buf = &packet->data[IN_DATA_BYTE + 6];
+        uint8_t *buf = &packet->data[IN_DATA_BYTE + 8];
+        uint16_t pkt_crc = crc16((char *)buf, size);
+        if (pkt_crc != crc) {
+            error = "CRC mismatch";
+            status = -1;
+            break;
+        }
         taskDISABLE_INTERRUPTS(); // Disable interrupts because if we are writing to
                                   // bank 0 and an interrupt is triggered there will
                                   // be a prefetch abort
