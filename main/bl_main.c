@@ -26,8 +26,6 @@
 #define INIT_PRIO configMAX_PRIORITIES - 1
 #define INIT_STACK_SIZE 1500
 
-#define CSP_USE_SDR
-
 uint32_t JumpAddress;
 void get_software_Version(void);
 void get_hardware_Info(void);
@@ -42,67 +40,87 @@ void bl_main(resetSource_t rstsrc);
 static inline bool init_csp_interface() {
     int error;
 
- #ifndef EPS_IS_STUBBED
-     csp_iface_t *can_iface = NULL;
-     error = csp_can_open_and_add_interface("CAN", &can_iface);
-     if (error != CSP_ERR_NONE) {
-         return SATR_ERROR;
-     }
- #endif /* EPS_IS_STUBBED */
+#if EPS_IS_STUBBED == 0
+    csp_iface_t *can_iface = NULL;
+    error = csp_can_open_and_add_interface("CAN", &can_iface);
+    if (error != CSP_ERR_NONE) {
+        return SATR_ERROR;
+    }
+#endif /* EPS_IS_STUBBED */
 
- #if !defined(CSP_USE_KISS) && !defined(CSP_USE_SDR) || defined(CSP_USE_KISS) && defined(CSP_USE_SDR)
- #error "CSP must use one of KISS or SDR"
- #endif /* !defined(CSP_USE_KISS) && !defined(CSP_USE_SDR) || defined(CSP_USE_KISS) && defined(CSP_USE_SDR) */
+#if CSP_USE_KISS == 1
+    csp_usart_conf_t conf = {.device = "UART",
+                             .baudrate = 115200, /* supported on all platforms */
+                             .databits = 8,
+                             .stopbits = 2,
+                             .paritysetting = 0,
+                             .checkparity = 0};
 
- #if defined(CSP_USE_KISS)
-     csp_usart_conf_t conf = {.device = "UART",
-                              .baudrate = 115200, /* supported on all platforms */
-                              .databits = 8,
-                              .stopbits = 2,
-                              .paritysetting = 0,
-                              .checkparity = 0};
+    csp_iface_t *uart_iface = NULL;
+    error = csp_usart_open_and_add_kiss_interface(&conf, CSP_IF_KISS_DEFAULT_NAME, &uart_iface);
+    if (error != CSP_ERR_NONE) {
+        return SATR_ERROR;
+    }
 
-     csp_iface_t *uart_iface = NULL;
-     error = csp_usart_open_and_add_kiss_interface(&conf, CSP_IF_KISS_DEFAULT_NAME, &uart_iface);
-     if (error != CSP_ERR_NONE) {
-         return SATR_ERROR;
-     }
+    char *gs_if_name = CSP_IF_KISS_DEFAULT_NAME;
+    int gs_if_addr = 16;
 
-     char *gs_if_name = CSP_IF_KISS_DEFAULT_NAME;
-     int gs_if_addr = 16;
+#endif /* defined(CSP_USE_KISS) */
 
- #endif /* defined(CSP_USE_KISS) */
+#if CSP_USE_SDR == 1
 
- #if defined(CSP_USE_SDR)
+#if SDR_TEST == 1
+    char *gs_if_name = SDR_IF_LOOPBACK_NAME;
+    int gs_if_addr = 23;
+#else
+    char *gs_if_name = SDR_IF_UHF_NAME;
+    int gs_if_addr = 16;
+#endif /* SDR_TEST */
 
- #ifdef SDR_TEST
-     char * gs_if_name = "LOOPBACK";
-     int gs_if_addr = 23;
- #else
-     char * gs_if_name = "UHF";
-     int gs_if_addr = 16;
- #endif /* SDR_TEST */
+    sdr_conf_t sdr_conf;
+    sdr_conf.uhf_conf.uhf_baudrate = SDR_UHF_9600_BAUD;
+    sdr_conf.uhf_conf.uart_baudrate = 115200;
 
-     csp_sdr_conf_t uhf_conf = {    .mtu = SDR_UHF_MAX_MTU,
-                                    .baudrate = SDR_UHF_9600_BAUD,
-                                    .uart_baudrate = 115200 };
-     error = csp_sdr_open_and_add_interface(&uhf_conf, gs_if_name, NULL);
-     if (error != CSP_ERR_NONE) {
-         return SATR_ERROR;
-     }
+    if (SDR_NO_CSP) {
+        sdr_interface_data_t *ifdata = sdr_interface_init(&sdr_conf, gs_if_name);
+        if (!ifdata)
+            return SATR_ERROR;
+#if SDR_TEST == 1
+        test_uhf_ifdata = ifdata;
+#endif
+    } else {
+        error = csp_sdr_open_and_add_interface(&sdr_conf, gs_if_name, NULL);
+        if (error != CSP_ERR_NONE) {
+            return SATR_ERROR;
+        }
+    }
 
- #endif /* defined(CSP_USE_SDR) */
+#if SBAND_IS_STUBBED == 0
+#if 0
+    error = csp_sdr_open_and_add_interface(&sdr_conf, SDR_IF_SBAND_NAME, NULL);
+    if (error != CSP_ERR_NONE) {
+        return SATR_ERROR;
+    }
+#endif
+#endif /* !SBAND_IS_STUBBED */
 
-     char rtable[128] = {0};
-     snprintf(rtable, 128, "%d %s", gs_if_addr, gs_if_name);
+#if SDR_TEST == 1
+    test_sband_ifdata = sdr_interface_init(&sdr_conf, SDR_IF_SBAND_NAME);
+    if (!test_sband_ifdata)
+        return SATR_ERROR;
+#endif
+#endif /* CSP_USE_SDR */
 
- #ifndef EPS_IS_STUBBED
-     snprintf(rtable, 128, "%s, 4 CAN", rtable);
- #endif /* EPS_IS_STUBBED */
+    char rtable[128] = {0};
+    snprintf(rtable, 128, "%d %s", gs_if_addr, gs_if_name);
 
-     csp_rtable_load(rtable);
+#if EPS_IS_STUBBED == 0
+    snprintf(rtable, 128, "%s, 4 CAN", rtable);
+#endif /* EPS_IS_STUBBED */
 
-     return SATR_OK;
+    csp_rtable_load(rtable);
+
+    return SATR_OK;
 }
 
 /**
@@ -117,7 +135,7 @@ static void init_csp() {
     csp_conf.hostname = "Athena_BL";
     csp_conf.model = "Ex-Alta2";
     csp_conf.revision = "2";
-    csp_conf.conn_max =10;
+    csp_conf.conn_max = 10;
     csp_conf.conn_queue_length = 10;
     csp_conf.fifo_length = 25;
     csp_conf.port_max_bind = 24;
@@ -148,7 +166,7 @@ char get_boot_type(resetSource_t rstsrc, boot_info *b_inf) {
 
     char stored_boot_type = b_inf->type;
 
-    switch(rstsrc) {
+    switch (rstsrc) {
     case POWERON_RESET:
         return stored_boot_type;
     case DEBUG_RESET:
@@ -177,7 +195,6 @@ void bl_main(resetSource_t rstsrc) {
     eeprom_get_boot_info(&b_inf);
     bootType = get_boot_type(rstsrc, &b_inf);
 
-
     b_inf.count += 1;
     b_inf.reason.rstsrc = rstsrc;
     if (rstsrc != SW_RESET) {
@@ -185,19 +202,23 @@ void bl_main(resetSource_t rstsrc) {
     }
     eeprom_set_boot_info(&b_inf);
 
-    switch(bootType) {
-    case 'A': start_application(); // no break to automatically attempt start golden on failure
+    switch (bootType) {
+    case 'A':
+        start_application(); // no break to automatically attempt start golden on failure
     /* no break */
-    case 'G': start_golden(); break;
+    case 'G':
+        start_golden();
+        break;
     case 'B':
-    default: break;
+    default:
+        break;
     }
 
     // if we make it here the golden image didn't work
 
     /* Initialize SCI Routines to receive Command and transmit data */
-	sciInit();
-	canInit();
+    sciInit();
+    canInit();
     xTaskCreate(bl_init, "init", INIT_STACK_SIZE, NULL, INIT_PRIO | portPRIVILEGE_BIT, NULL);
 
     vTaskStartScheduler();
@@ -252,4 +273,3 @@ void ex2_log(const char *format, ...) {
     vprintf(format, arg);
     va_end(arg);
 }
-

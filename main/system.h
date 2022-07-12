@@ -34,13 +34,13 @@
 // It contains Application Start Address, Application Image Size, etc
 //
 //*****************************************************************************
-#if defined(IS_ATHENA)
+#if IS_ATHENA == 1
 #define CSP_SCI sciREG2 // UART2
 #else
 #define CSP_SCI sciREG3 /* Use appropriate UART port */
 #endif
 
-#define PRINTF_SCI NULL
+#define PRINTF_SCI sciREG1
 #define BUFFER_SIZE 64 /*words in the data buffer used for receiving packets*/
 #define NORMAL_SERVICE_PRIO (tskIDLE_PRIORITY + 1)
 
