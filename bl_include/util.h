@@ -23,5 +23,5 @@
 #define UTIL_H_
 
 uint32_t hex2int(const char *hex);
-
+unsigned short crc16(char *ptr, int count);
 #endif /* UTIL_H_ */
