@@ -25,6 +25,7 @@
  */
 
 #include <stdint.h>
+#include "util.h"
 
 uint32_t hex2int(const char *hex) {
     uint32_t val = 0;
@@ -46,4 +47,22 @@ uint32_t hex2int(const char *hex) {
         val = (val << 4) | (byte & 0xF);
     }
     return val;
+}
+
+unsigned short crc16(char *ptr, int count) {
+    uint16_t crc;
+    char i;
+    crc = 0;
+    while (--count >= 0) {
+        crc = crc ^ (((int)*ptr) << 8);
+        ptr = ptr + 1;
+        i = 8;
+        do {
+            if (crc & 0x8000)
+                crc = (crc << 1) ^ 0x1021;
+            else
+                crc = crc << 1;
+        } while (--i);
+    }
+    return (crc);
 }
