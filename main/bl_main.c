@@ -77,8 +77,10 @@ static inline bool init_csp_interface() {
     int gs_if_addr = 16;
 #endif /* SDR_TEST */
 
-    csp_sdr_conf_t uhf_conf = {.mtu = SDR_UHF_MAX_MTU, .baudrate = SDR_UHF_9600_BAUD, .uart_baudrate = 115200};
-    error = csp_sdr_open_and_add_interface(&uhf_conf, gs_if_name, NULL);
+    sdr_conf_t sdr_conf = {0};
+    sdr_conf.uhf_conf.uhf_baudrate = SDR_UHF_9600_BAUD;
+    sdr_conf.uhf_conf.uart_baudrate = 115200;
+    error = csp_sdr_open_and_add_interface(&sdr_conf, gs_if_name, NULL);
     if (error != CSP_ERR_NONE) {
         return SATR_ERROR;
     }
