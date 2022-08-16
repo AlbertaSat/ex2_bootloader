@@ -187,7 +187,7 @@ void *get_buffer(int32_t size) { return pvPortMalloc(size); }
  */
 SAT_returnState updater_app(csp_packet_t *packet) {
     uint8_t ser_subtype = (uint8_t)packet->data[SUBSERVICE_BYTE];
-    int8_t status = 0;
+    update_failuretype status = UPDATE_NOFAIL;
     uint8_t oReturnCheck = 0;
     int return_packet_length = sizeof(int8_t) + 1;
 
@@ -201,7 +201,7 @@ SAT_returnState updater_app(csp_packet_t *packet) {
         oReturnCheck = BLInternalFlashStartAddrCheck(app_info.addr, app_info.size);
         if (!oReturnCheck) {
             error = "Flash addr invalid";
-            status = -1;
+            status = UPDATE_INVALIDADDR;
             break;
         }
 
@@ -213,7 +213,7 @@ SAT_returnState updater_app(csp_packet_t *packet) {
         taskENABLE_INTERRUPTS();
         if (oReturnCheck) {
             error = "Could not erase block";
-            status = -1;
+            status = UPDATE_ERASEFAILED;
             break;
         }
 
@@ -223,7 +223,7 @@ SAT_returnState updater_app(csp_packet_t *packet) {
         } else {
             eeprom_set_app_info(&app_info);
         }
-        status = 0;
+
         update.initialized = EXISTS_FLAG;
         update.start_address = app_info.addr;
         update.next_address = update.start_address;
@@ -234,7 +234,7 @@ SAT_returnState updater_app(csp_packet_t *packet) {
 
     case PROGRAM_BLOCK:
         if (update.initialized != EXISTS_FLAG) {
-            status = -1;
+            status = UPDATE_NOINIT;
             break;
         }
         uint16_t crc; // CRC for the data portion of the packet
@@ -245,7 +245,7 @@ SAT_returnState updater_app(csp_packet_t *packet) {
         cnv8_32(&packet->data[IN_DATA_BYTE], &address);
         if (address != (update.next_address)) {
             error = "Block out of order";
-            status = -1;
+            status = UPDATE_OUTOFORDER;
             break;
         }
         uint32_t flash_destination = address;
@@ -255,7 +255,7 @@ SAT_returnState updater_app(csp_packet_t *packet) {
         uint16_t pkt_crc = crc16((char *)buf, size);
         if (pkt_crc != crc) {
             error = "CRC mismatch";
-            status = -1;
+            status = UPDATE_CRCMISMATCH;
             break;
         }
         taskDISABLE_INTERRUPTS(); // Disable interrupts because if we are writing to
@@ -266,7 +266,7 @@ SAT_returnState updater_app(csp_packet_t *packet) {
 
         if (oReturnCheck) {
             error = "Failed to write to block";
-            status = -1;
+            status = UPDATE_WRITEFAILED;
             break;
         }
         update.next_address = address + size;
@@ -289,7 +289,8 @@ SAT_returnState updater_app(csp_packet_t *packet) {
 
     case GET_PROGRESS:
         if (update.initialized != EXISTS_FLAG) {
-            status = -1;
+            status = UPDATE_NOINIT;
+            break;
         }
         cnv8_32(&update.start_address, &packet->data[OUT_DATA_BYTE]);
         cnv8_32(&update.next_address, &packet->data[OUT_DATA_BYTE + 4]);
@@ -306,21 +307,24 @@ SAT_returnState updater_app(csp_packet_t *packet) {
 
     case VERIFY_APPLICATION_IMAGE:
         if (verify_application() != true) {
-            status = -1;
+            status = UPDATE_VERIFYFAILED;
             break;
         }
         break;
 
     case VERIFY_GOLDEN_IMAGE:
         if (verify_golden() != true) {
-            status = -1;
+            status = UPDATE_VERIFYFAILED;
             break;
         }
         break;
 
     default:
         error = "No such subservice\n";
-        status = -1;
+        status = UPDATE_NOSUBSERVICE;
+    }
+    if (status != UPDATE_NOFAIL) {
+        status = (-1) * status;
     }
     set_packet_length(packet, return_packet_length);
     memcpy(&packet->data[STATUS_BYTE], &status, sizeof(int8_t));
