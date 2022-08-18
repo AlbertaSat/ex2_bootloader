@@ -37,4 +37,17 @@ typedef enum {
     VERIFY_GOLDEN_IMAGE
 } updater_subtype; // shared with EPS!
 
+typedef enum {
+    UPDATE_NOFAIL = 0,
+    UPDATE_GENERICFAILURE = 1,
+    UPDATE_INVALIDADDR = 2,
+    UPDATE_NOINIT = 3,
+    UPDATE_ERASEFAILED = 4,
+    UPDATE_WRITEFAILED = 5,
+    UPDATE_OUTOFORDER = 6,
+    UPDATE_CRCMISMATCH = 7,
+    UPDATE_VERIFYFAILED = 8,
+    UPDATE_NOSUBSERVICE = 9
+} update_failuretype;
+
 #endif /* UPDATER_H_ */
