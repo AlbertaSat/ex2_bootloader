@@ -239,12 +239,12 @@ uint32 getProfilerTimerCount() {
 
 void vApplicationStackOverflowHook(TaskHandle_t xTask, char *pcTaskName) {
     for (;;)
-        ;
+        sw_reset('A', DABORT);
 }
 
 void vApplicationMallocFailedHook(void) {
     for (;;)
-        ;
+        sw_reset('A', DABORT); // This function is disabled in FreeRTOS.h, but this is here anyway just in case
 }
 
 void vApplicationDaemonTaskStartupHook(void) {}
