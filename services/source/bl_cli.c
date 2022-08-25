@@ -40,6 +40,11 @@
  * the FreeRTOS+CLI controller
  */
 
+static BaseType_t prvHostNameCommand(char *pcWriteBuffer, size_t xWriteBufferLen, const char *pcCommandString) {
+    snprintf(pcWriteBuffer, xWriteBufferLen, "%s\r\n", CSP_HOSTNAME);
+    return pdFALSE;
+}
+
 static BaseType_t prvImageTypeCommand(char *pcWriteBuffer, size_t xWriteBufferLen, const char *pcCommandString) {
     snprintf(pcWriteBuffer, xWriteBufferLen, "Bootloader\r\n");
     return pdFALSE;
@@ -292,6 +297,8 @@ static const CLI_Command_Definition_t xImageTypeCommand = {"imagetype", "imagety
                                                            prvImageTypeCommand, 0};
 static const CLI_Command_Definition_t xSetCommand = {
     "set", "set:\n\tSet the next boot without rebooting. Can be B, G, or A\n", prvSetCommand, 1};
+static const CLI_Command_Definition_t xHostNameCommand = {"hostname", "hostname\n\tReturns hostname\n",
+                                                          prvHostNameCommand, 0};
 
 /**
  * @brief
@@ -387,6 +394,7 @@ void register_commands() {
     FreeRTOS_CLIRegisterCommand(&xUptimeCommand);
     FreeRTOS_CLIRegisterCommand(&xImageTypeCommand);
     FreeRTOS_CLIRegisterCommand(&xSetCommand);
+    FreeRTOS_CLIRegisterCommand(&xHostNameCommand);
 }
 
 /**
