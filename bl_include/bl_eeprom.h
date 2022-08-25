@@ -37,6 +37,9 @@
 #define UPDATE_INFO_BLOCKNUMBER 3
 #define UPDATE_INFO_LEN sizeof(update_info)
 
+#define KEY_STORE_BLOCKNUMBER 5
+#define KEY_STORE_LEN sizeof(key_store)
+
 // Representation of data which will be stored in FEE flash
 typedef struct __attribute__((packed)) {
     uint32_t exists; // EXISTS_FLAG for exists, else does not exist
@@ -69,6 +72,16 @@ typedef struct __attribute__((packed)) {
     boot_reason reason;
 } boot_info;
 
+typedef struct __attribute__((packed)) {
+    uint32_t key_len;
+    uint8_t key[64];
+} satellite_key_t;
+
+typedef struct __attribute__((packed)) {
+    satellite_key_t hmac_key;
+    satellite_key_t encrypt_key;
+} key_store;
+
 void sw_reset(char reboot_type, SW_RESET_REASON reason);
 
 bool eeprom_init();
@@ -90,6 +103,10 @@ Fapi_StatusType eeprom_set_boot_info(boot_info *b);
 Fapi_StatusType eeprom_set_update_info(update_info *u);
 
 Fapi_StatusType eeprom_get_update_info(update_info *u);
+
+Fapi_StatusType eeprom_get_key_store(key_store *k);
+
+Fapi_StatusType eeprom_set_key_store(key_store *k);
 
 bool verify_application();
 

@@ -9,6 +9,7 @@
 #include "bl_eeprom.h"
 #include "bl_launch.h"
 #include "HL_sci.h"
+#include "HL_can.h"
 #include "HL_sys_common.h"
 #include "printf.h"
 #include "bl_launch.h"
@@ -22,7 +23,8 @@
 #include "privileged_functions.h"
 #include "crypto.h"
 #include <csp/interfaces/csp_if_sdr.h>
-
+#include "csp/crypto/csp_hmac.h"
+#include "csp/crypto/csp_xtea.h"
 #define INIT_PRIO configMAX_PRIORITIES - 1
 #define INIT_STACK_SIZE 1500
 
@@ -104,18 +106,16 @@ static inline bool init_csp_interface() {
  * Initialize CSP network
  */
 static void init_csp() {
-    TC_TM_app_id my_address = OBC_APP_ID;
-
     /* Init CSP with address and default settings */
     csp_conf_t csp_conf;
-    csp_conf.address = 1;
-    csp_conf.hostname = "Athena_BL";
-    csp_conf.model = "Ex-Alta2";
+    csp_conf.address = CSP_ADDRESS;
+    csp_conf.model = "Athena_Bl";
+    csp_conf.hostname = CSP_HOSTNAME;
     csp_conf.revision = "2";
-    csp_conf.conn_max = 10;
+    csp_conf.conn_max = 20;
     csp_conf.conn_queue_length = 10;
     csp_conf.fifo_length = 25;
-    csp_conf.port_max_bind = 24;
+    csp_conf.port_max_bind = 254;
     csp_conf.rdp_max_window = 20;
     csp_conf.buffers = 10;
     csp_conf.buffer_data_size = 1024;
@@ -125,10 +125,15 @@ static void init_csp() {
     /* Set default route and start router & server */
     csp_route_start_task(1000, 2);
     init_csp_interface();
-    char *test_key;
-    int key_len;
-    get_crypto_key(HMAC_KEY, &test_key, &key_len);
-    csp_hmac_set_key(test_key, key_len);
+    char *hmac_key;
+    int hmac_len;
+    get_crypto_key(HMAC_KEY, &hmac_key, &hmac_len);
+    csp_hmac_set_key(hmac_key, hmac_len);
+    char *xtea_key;
+    int xtea_len;
+    get_crypto_key(ENCRYPT_KEY, &xtea_key, &xtea_len);
+    csp_xtea_set_key(xtea_key, xtea_len);
+    return;
     return;
 }
 

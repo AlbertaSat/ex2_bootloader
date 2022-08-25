@@ -126,6 +126,16 @@ Fapi_StatusType eeprom_get_update_info(update_info *u) {
     return status;
 }
 
+Fapi_StatusType eeprom_get_key_store(key_store *k) {
+    Fapi_StatusType status = eeprom_read((void *)k, KEY_STORE_BLOCKNUMBER, KEY_STORE_LEN);
+    return status;
+}
+
+Fapi_StatusType eeprom_set_key_store(key_store *k) {
+    Fapi_StatusType status = eeprom_write((void *)k, KEY_STORE_BLOCKNUMBER, KEY_STORE_LEN);
+    return status;
+}
+
 bool verify_application() {
     image_info app_info = {0};
     eeprom_get_app_info(&app_info);
