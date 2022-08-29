@@ -215,8 +215,7 @@ void vAssertCalled(unsigned long ulLine, const char *const pcFileName) {
     (void)pcFileName;
 
     printf("ASSERT! Line %d, file %s\r\n", ulLine, pcFileName);
-    for (;;)
-        ;
+    sw_reset('B', DABORT);
 }
 
 void initializeProfiler() {
@@ -239,12 +238,12 @@ uint32 getProfilerTimerCount() {
 
 void vApplicationStackOverflowHook(TaskHandle_t xTask, char *pcTaskName) {
     for (;;)
-        sw_reset('A', DABORT);
+        sw_reset('B', DABORT);
 }
 
 void vApplicationMallocFailedHook(void) {
     for (;;)
-        sw_reset('A', DABORT); // This function is disabled in FreeRTOS.h, but this is here anyway just in case
+        sw_reset('B', DABORT); // This function is disabled in FreeRTOS.h, but this is here anyway just in case
 }
 
 void vApplicationDaemonTaskStartupHook(void) {}
