@@ -29,6 +29,9 @@ bool copy_golden_image() {
     image_info app_info = {0};
     memcpy(&app_info, &golden_info, sizeof(image_info));
     app_info.addr = APP_MINIMUM_ADDR; // This is an emergency, so this will do
+    if (BLInternalFlashStartAddrCheck(app_info.addr, app_info.size) != 0) {
+        return false;
+    }
 
     eeprom_set_app_info(&app_info);
 
