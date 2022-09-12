@@ -9,6 +9,7 @@
 #include "bl_eeprom.h"
 #include <stdbool.h>
 #include <system.h>
+#include "bl_flash.h"
 
 bool start_application(void) {
     if (verify_application() == true) {
@@ -53,6 +54,6 @@ void start_golden() {
         if (copy_golden_image() == false) {
             return;
         }
-        sw_reset("A", REQUESTED);
+        sw_reset('A', REQUESTED);
     }
 }
