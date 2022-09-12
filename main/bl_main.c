@@ -94,7 +94,7 @@ static inline bool init_csp_interface() {
     snprintf(rtable, 128, "%d %s", gs_if_addr, gs_if_name);
 
 #if EPS_IS_STUBBED == 0
-    snprintf(rtable, 128, "%s, 4 CAN", rtable);
+    snprintf(rtable, 128, "%s, %d CAN", rtable, EPS_ADDRESS);
 #endif /* EPS_IS_STUBBED */
 
     csp_rtable_load(rtable);
