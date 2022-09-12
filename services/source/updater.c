@@ -258,11 +258,17 @@ SAT_returnState updater_app(csp_packet_t *packet) {
             status = UPDATE_CRCMISMATCH;
             break;
         }
-        taskDISABLE_INTERRUPTS(); // Disable interrupts because if we are writing to
-                                  // bank 0 and an interrupt is triggered there will
-                                  // be a prefetch abort
+        if (bank == 0) {
+            taskDISABLE_INTERRUPTS(); // Disable interrupts because if we are writing to
+                                      // bank 0 and an interrupt is triggered there will
+                                      // be a prefetch abort
+        }
+
         oReturnCheck = Fapi_BlockProgram(bank, flash_destination, (unsigned long)buf, size);
-        taskENABLE_INTERRUPTS();
+
+        if (bank == 0) {
+            taskENABLE_INTERRUPTS();
+        }
 
         if (oReturnCheck) {
             error = "Failed to write to block";
