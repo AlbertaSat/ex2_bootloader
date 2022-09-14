@@ -8,8 +8,6 @@
 #ifndef CONFIG_YUKONSAT_H_
 #define CONFIG_YUKONSAT_H_
 
-#define SYSTEM_APP_ID _OBC_APP_ID_
-
 #define IS_ATHENA 1
 #define IS_ATHENA_V2 1
 
@@ -50,6 +48,7 @@
 
 #define CSP_ADDRESS 2
 #define CSP_HOSTNAME "YukonSat_BL"
+#define EPS_ADDRESS 6
 
 /* Define SDR_NO_CSP==0 to use CSP for SDR */
 #define SDR_NO_CSP 0
