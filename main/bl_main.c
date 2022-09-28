@@ -155,6 +155,7 @@ char get_boot_type(resetSource_t rstsrc, boot_info *b_inf) {
     case EXT_RESET:
         return 'B';
     case SW_RESET:
+    case WATCHDOG_RESET:
         if (b_inf->attempts >= 5) {
             b_inf->attempts = 0;
             if (stored_boot_type == 'A') {
