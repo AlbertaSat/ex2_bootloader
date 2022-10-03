@@ -5,7 +5,6 @@
 #include "HL_system.h"
 #include "HL_rti.h"
 #include "HL_gio.h"
-#include "ti_fee.h"
 #include "bl_eeprom.h"
 #include "bl_launch.h"
 #include "HL_sci.h"
@@ -25,6 +24,7 @@
 #include <csp/interfaces/csp_if_sdr.h>
 #include "csp/crypto/csp_hmac.h"
 #include "csp/crypto/csp_xtea.h"
+#include "sw_wdt.h"
 #define INIT_PRIO configMAX_PRIORITIES - 1
 #define INIT_STACK_SIZE 1500
 
@@ -138,7 +138,7 @@ static void init_csp() {
 }
 
 void bl_init(void *pvParameters) {
-    printf("Hello world!\n");
+    start_sw_watchdog();
     init_csp();
     start_service_server();
     vTaskDelete(0);
@@ -155,6 +155,7 @@ char get_boot_type(resetSource_t rstsrc, boot_info *b_inf) {
     case EXT_RESET:
         return 'B';
     case SW_RESET:
+    case WATCHDOG_RESET:
         if (b_inf->attempts >= 5) {
             b_inf->attempts = 0;
             if (stored_boot_type == 'A') {
@@ -215,7 +216,9 @@ void vAssertCalled(unsigned long ulLine, const char *const pcFileName) {
     (void)pcFileName;
 
     printf("ASSERT! Line %d, file %s\r\n", ulLine, pcFileName);
-    sw_reset('B', DABORT);
+    RAISE_PRIVILEGE;
+    systemREG1->SYSECR = (0x10) << 14;
+    RESET_PRIVILEGE;
 }
 
 void initializeProfiler() {

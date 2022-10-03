@@ -56,6 +56,9 @@ typedef enum {
 } SAT_returnState;
 //#define   DEBUG_MSG_L3
 
+// watchdog timer expires in 447ms
+#define WDT_DELAY 300 // 300 miliseconds gives a a good window
+
 /**
  * SANITY CHECKS
  */

@@ -342,7 +342,7 @@ void handlePLLLockFail(void)
 #pragma INTERRUPT(_c_int00, UDEF)
 void _undef(void) {
     while(1) {
-        sw_reset(0, UNDEF);
+        systemREG1->SYSECR = (0x10) << 14;
     }
 }
 
@@ -350,7 +350,7 @@ void _undef(void) {
 #pragma INTERRUPT(_c_int00, PABT)
 void _prefetch (void) {
     while(1) {
-        sw_reset(0, PREFETCH);
+        systemREG1->SYSECR = (0x10) << 14;
     }
 }
 
@@ -358,7 +358,7 @@ void _prefetch (void) {
 #pragma INTERRUPT(_c_int00, DABT)
 void _dabort (void) {
     while(1) {
-        sw_reset(0, DABORT);
+        systemREG1->SYSECR = (0x10) << 14;
     }
 }
 
