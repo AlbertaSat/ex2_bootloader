@@ -33,6 +33,8 @@ void get_software_Version(void);
 void get_hardware_Info(void);
 void bl_main(resetSource_t rstsrc);
 
+void csp_wrap_debug(csp_debug_level_t level, const char *format, va_list args) { printf(format, args); }
+
 /**
  * Initialize CSP interfaces
  * @details
@@ -106,6 +108,7 @@ static inline bool init_csp_interface() {
  * Initialize CSP network
  */
 static void init_csp() {
+    csp_debug_hook_set(csp_wrap_debug);
     /* Init CSP with address and default settings */
     csp_conf_t csp_conf;
     csp_conf.address = CSP_ADDRESS;
