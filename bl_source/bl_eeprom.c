@@ -6,6 +6,7 @@
  */
 
 #include "bl_eeprom.h"
+#include "leop_eeprom.h"
 #include "FreeRTOSConfig.h"
 #include "bl_flash.h"
 #include "flash_defines.h"
@@ -134,6 +135,42 @@ Fapi_StatusType eeprom_get_key_store(key_store *k) {
 Fapi_StatusType eeprom_set_key_store(key_store *k) {
     Fapi_StatusType status = eeprom_write((void *)k, KEY_STORE_BLOCKNUMBER, KEY_STORE_LEN);
     return status;
+}
+
+bool eeprom_get_leop_status() {
+    leop_status_t state = {0};
+    if (eeprom_read(&state, LEOP_INFO_BLOCKNUMBER, sizeof(state)) == Fapi_Status_Success) {
+        if (state.exists_flag == EXISTS_FLAG) {
+            return state.status;
+        } else {
+            memset(&state, 0, sizeof(state));
+            state.exists_flag = EXISTS_FLAG;
+            eeprom_write(&state, LEOP_INFO_BLOCKNUMBER, sizeof(state));
+            return state.status;
+        }
+    } else {
+        return false;
+    }
+}
+
+bool eeprom_set_leop_status() {
+    leop_status_t state = {0};
+    state.exists_flag = EXISTS_FLAG;
+    state.status = true;
+    eeprom_write(&state, LEOP_INFO_BLOCKNUMBER, sizeof(state));
+    return true;
+}
+
+/**
+ * DANGEROUS FUNCTION
+ * Used for flatsat testing, not to be used for normal code
+ */
+void eeprom_reset_leop_status() {
+    leop_status_t state = {0};
+    state.exists_flag = EXISTS_FLAG;
+    state.status = false;
+    eeprom_write(&state, LEOP_INFO_BLOCKNUMBER, sizeof(state));
+    return true;
 }
 
 bool verify_application() {
