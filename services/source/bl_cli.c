@@ -32,6 +32,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
+#include "leop_eeprom.h"
 
 /*
  * Command Implementations
@@ -97,7 +98,7 @@ static BaseType_t prvEchoCommand(char *pcWriteBuffer, size_t xWriteBufferLen, co
             /* No more parameters were found.  Make sure the write buffer does
             not contain a valid string to prevent junk being printed out. */
             /* now add CRLF to the last line, for formating*/
-            snprintf(pcWriteBuffer, 3, "\r\n", parameter);
+            snprintf(pcWriteBuffer, 3, "\r\n");
 
             /* There is no more data to return, so this time set xReturn to
             pdFALSE. */
@@ -174,6 +175,25 @@ static BaseType_t prvBootInfoCommand(char *pcWriteBuffer, size_t xWriteBufferLen
     }
     snprintf(pcWriteBuffer, xWriteBufferLen, "Count: %d, Attempts: %d, Reset: %s, Reason: %s\n", inf.count,
              inf.attempts, reset_source_str, reason_str);
+    return pdFALSE;
+}
+
+static BaseType_t prvLeopCommand(char *pcWriteBuffer, size_t xWriteBufferLen, const char *pcCommandString) {
+    BaseType_t parameter_len;
+    const char *parameter = FreeRTOS_CLIGetParameter(
+        /* The command string itself. */
+        pcCommandString,
+        /* Return the first parameter. */
+        1,
+        /* Store the parameter string length. */
+        &parameter_len);
+    if (strncmp(parameter, "set", parameter_len) == 0) {
+        eeprom_set_leop_status();
+    } else if (strncmp(parameter, "reset", parameter_len) == 0) {
+        eeprom_reset_leop_status();
+    } else if (strncmp(parameter, "get", parameter_len) == 0) {
+        snprintf(pcWriteBuffer, xWriteBufferLen, "%d", eeprom_get_leop_status());
+    }
     return pdFALSE;
 }
 
@@ -299,6 +319,8 @@ static const CLI_Command_Definition_t xSetCommand = {
     "set", "set:\n\tSet the next boot without rebooting. Can be B, G, or A\n", prvSetCommand, 1};
 static const CLI_Command_Definition_t xHostNameCommand = {"hostname", "hostname\n\tReturns hostname\n",
                                                           prvHostNameCommand, 0};
+static const CLI_Command_Definition_t xLeopCommand = {"leop", "leop\n\tGet, set, or reset leop status\n",
+                                                      prvLeopCommand, 1};
 
 /**
  * @brief
@@ -395,6 +417,7 @@ void register_commands() {
     FreeRTOS_CLIRegisterCommand(&xImageTypeCommand);
     FreeRTOS_CLIRegisterCommand(&xSetCommand);
     FreeRTOS_CLIRegisterCommand(&xHostNameCommand);
+    FreeRTOS_CLIRegisterCommand(&xLeopCommand);
 }
 
 /**

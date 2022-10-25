@@ -40,6 +40,8 @@
 #define KEY_STORE_BLOCKNUMBER 5
 #define KEY_STORE_LEN sizeof(key_store)
 
+#define LEOP_INFO_BLOCKNUMBER 4
+
 // Representation of data which will be stored in FEE flash
 typedef struct __attribute__((packed)) {
     uint32_t exists; // EXISTS_FLAG for exists, else does not exist
