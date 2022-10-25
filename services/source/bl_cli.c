@@ -33,6 +33,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include "leop_eeprom.h"
+#include "version.h"
 
 /*
  * Command Implementations
@@ -47,7 +48,7 @@ static BaseType_t prvHostNameCommand(char *pcWriteBuffer, size_t xWriteBufferLen
 }
 
 static BaseType_t prvImageTypeCommand(char *pcWriteBuffer, size_t xWriteBufferLen, const char *pcCommandString) {
-    snprintf(pcWriteBuffer, xWriteBufferLen, "Bootloader\r\n");
+    snprintf(pcWriteBuffer, xWriteBufferLen, "Bootloader version %s\r\n", VERSION);
     return pdFALSE;
 }
 
