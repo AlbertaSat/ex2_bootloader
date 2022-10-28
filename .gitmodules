@@ -7,3 +7,6 @@
 [submodule "ex2_sdr"]
 	path = ex2_sdr
 	url = git@github.com:AlbertaSat/ex2_sdr.git
+[submodule "ex2_uhf_software"]
+	path = ex2_uhf_software
+	url = git@github.com:AlbertaSat/ex2_uhf_software.git
