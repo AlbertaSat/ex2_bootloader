@@ -25,6 +25,9 @@
 #include "csp/crypto/csp_hmac.h"
 #include "csp/crypto/csp_xtea.h"
 #include "sw_wdt.h"
+#include "uhf.h"
+#include "uhf_uart.h"
+#include "uhf_i2c.h"
 #define INIT_PRIO configMAX_PRIORITIES - 1
 #define INIT_STACK_SIZE 1500
 
@@ -44,13 +47,11 @@ void csp_wrap_debug(csp_debug_level_t level, const char *format, va_list args) {
 static inline bool init_csp_interface() {
     int error;
 
-#if EPS_IS_STUBBED == 0
     csp_iface_t *can_iface = NULL;
     error = csp_can_open_and_add_interface("CAN", &can_iface);
     if (error != CSP_ERR_NONE) {
         return SATR_ERROR;
     }
-#endif /* EPS_IS_STUBBED */
 
 #if CSP_USE_KISS == 1
     csp_usart_conf_t conf = {.device = "UART",
@@ -95,9 +96,7 @@ static inline bool init_csp_interface() {
     char rtable[128] = {0};
     snprintf(rtable, 128, "%d %s", gs_if_addr, gs_if_name);
 
-#if EPS_IS_STUBBED == 0
     snprintf(rtable, 128, "%s, %d CAN", rtable, EPS_ADDRESS);
-#endif /* EPS_IS_STUBBED */
 
     csp_rtable_load(rtable);
 
@@ -137,12 +136,18 @@ static void init_csp() {
     get_crypto_key(ENCRYPT_KEY, &xtea_key, &xtea_len);
     csp_xtea_set_key(xtea_key, xtea_len);
     return;
-    return;
 }
 
 void bl_init(void *pvParameters) {
     start_sw_watchdog();
     init_csp();
+
+#if UHF_IS_STUBBED == 0
+    uhf_uart_init();
+    uhf_i2c_init();
+    UHF_init_config();
+#endif
+
     start_service_server();
     vTaskDelete(0);
 }
@@ -201,7 +206,7 @@ void bl_main(resetSource_t rstsrc) {
     }
 
     // if we make it here the golden image didn't work
-
+    _enable_IRQ_interrupt_(); // enable inturrupts
     /* Initialize SCI Routines to receive Command and transmit data */
     sciInit();
     canInit();
@@ -253,10 +258,3 @@ void vApplicationMallocFailedHook(void) {
 }
 
 void vApplicationDaemonTaskStartupHook(void) {}
-
-void ex2_log(const char *format, ...) {
-    va_list arg;
-    va_start(arg, format);
-    vprintf(format, arg);
-    va_end(arg);
-}
