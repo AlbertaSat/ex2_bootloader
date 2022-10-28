@@ -28,6 +28,7 @@
 #include "uhf.h"
 #include "uhf_uart.h"
 #include "uhf_i2c.h"
+#include "logger.h"
 #define INIT_PRIO configMAX_PRIORITIES - 1
 #define INIT_STACK_SIZE 1500
 
@@ -36,7 +37,7 @@ void get_software_Version(void);
 void get_hardware_Info(void);
 void bl_main(resetSource_t rstsrc);
 
-void csp_wrap_debug(csp_debug_level_t level, const char *format, va_list args) { printf(format, args); }
+void csp_wrap_debug(csp_debug_level_t level, const char *format, va_list args) { sys_log(INFO, format, args); }
 
 /**
  * Initialize CSP interfaces
