@@ -43,7 +43,9 @@
 
 #define PRINTF_SCI NULL
 #define BUFFER_SIZE 64 /*words in the data buffer used for receiving packets*/
-#define NORMAL_SERVICE_PRIO (tskIDLE_PRIORITY + 1)
+#define NORMAL_SERVICE_PRIO (1)
+
+#define COMM_SVC_SIZE 1000
 
 #define UHF_I2C i2cREG1
 

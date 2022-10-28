@@ -24,6 +24,8 @@
 #include <FreeRTOS.h>
 #include <csp/csp.h>
 #include <os_task.h>
+#include "updater.h"
+#include "communication_service.h"
 
 void csp_server(void *parameters);
 SAT_returnState start_service_server(void);
@@ -44,6 +46,7 @@ SAT_returnState start_service_server(void) {
     }
     start_cli_service();
     start_updater_service();
+    start_communication_service();
     return SATR_OK;
 }
 
