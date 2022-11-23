@@ -36,13 +36,18 @@
 //*****************************************************************************
 #if IS_ATHENA == 1
 #define CSP_SCI sciREG2 // UART2
+#define UHF_SCI CSP_SCI
 #else
 #define CSP_SCI sciREG3 /* Use appropriate UART port */
 #endif
 
 #define PRINTF_SCI NULL
 #define BUFFER_SIZE 64 /*words in the data buffer used for receiving packets*/
-#define NORMAL_SERVICE_PRIO (tskIDLE_PRIORITY + 1)
+#define NORMAL_SERVICE_PRIO (1)
+
+#define COMM_SVC_SIZE 1000
+
+#define UHF_I2C i2cREG1
 
 typedef enum {
     SATR_PKT_ILLEGAL_APPID = 0,

@@ -25,10 +25,10 @@
 #endif
 
 #define ATHENA_IS_STUBBED 0
-#define UHF_IS_STUBBED 1
+#define UHF_IS_STUBBED 0
 #define ADCS_IS_STUBBED 1
 #define SBAND_IS_STUBBED 1
-#define EPS_IS_STUBBED 0
+#define EPS_IS_STUBBED 1
 #define HYPERION_IS_STUBBED 1
 #define CHARON_IS_STUBBED 1
 #define DFGM_IS_STUBBED 1
@@ -40,7 +40,7 @@
 #define USE_RADIO_ERROR_CORRECTION 1
 
 /* Only defined for final flight build of software */
-#define FLIGHT_CONFIGURATION 0
+#define FLIGHT_CONFIGURATION 1
 
 #define CSP_FREERTOS 1
 #define CSP_USE_SDR 1

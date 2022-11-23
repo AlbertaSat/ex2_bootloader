@@ -25,6 +25,10 @@
 #include "csp/crypto/csp_hmac.h"
 #include "csp/crypto/csp_xtea.h"
 #include "sw_wdt.h"
+#include "uhf.h"
+#include "uhf_uart.h"
+#include "uhf_i2c.h"
+#include "logger.h"
 #define INIT_PRIO configMAX_PRIORITIES - 1
 #define INIT_STACK_SIZE 1500
 
@@ -33,7 +37,7 @@ void get_software_Version(void);
 void get_hardware_Info(void);
 void bl_main(resetSource_t rstsrc);
 
-void csp_wrap_debug(csp_debug_level_t level, const char *format, va_list args) { printf(format, args); }
+void csp_wrap_debug(csp_debug_level_t level, const char *format, va_list args) { sys_log(INFO, format, args); }
 
 /**
  * Initialize CSP interfaces
@@ -44,13 +48,11 @@ void csp_wrap_debug(csp_debug_level_t level, const char *format, va_list args) {
 static inline bool init_csp_interface() {
     int error;
 
-#if EPS_IS_STUBBED == 0
     csp_iface_t *can_iface = NULL;
     error = csp_can_open_and_add_interface("CAN", &can_iface);
     if (error != CSP_ERR_NONE) {
         return SATR_ERROR;
     }
-#endif /* EPS_IS_STUBBED */
 
 #if CSP_USE_KISS == 1
     csp_usart_conf_t conf = {.device = "UART",
@@ -95,9 +97,7 @@ static inline bool init_csp_interface() {
     char rtable[128] = {0};
     snprintf(rtable, 128, "%d %s", gs_if_addr, gs_if_name);
 
-#if EPS_IS_STUBBED == 0
     snprintf(rtable, 128, "%s, %d CAN", rtable, EPS_ADDRESS);
-#endif /* EPS_IS_STUBBED */
 
     csp_rtable_load(rtable);
 
@@ -137,12 +137,29 @@ static void init_csp() {
     get_crypto_key(ENCRYPT_KEY, &xtea_key, &xtea_len);
     csp_xtea_set_key(xtea_key, xtea_len);
     return;
-    return;
 }
 
 void bl_init(void *pvParameters) {
     start_sw_watchdog();
     init_csp();
+
+#if UHF_IS_STUBBED == 0
+    uhf_uart_init();
+    uhf_i2c_init();
+
+    uint8_t uhf_scw[SCW_LEN] = {0};
+    uint8_t status = HAL_UHF_getSCW(uhf_scw);
+    uint8_t mode = uhf_scw[UHF_SCW_RFMODE_INDEX];
+    csp_iface_t *iface = csp_iflist_get_by_name(SDR_IF_UHF_NAME);
+    sdr_interface_data_t *ifdata = iface->interface_data;
+    status = sdr_uhf_set_rf_mode(ifdata, mode);
+    if (status != 0) {
+        sys_log(ERROR, "couldn't set uhf rf mode delay correctly");
+    }
+
+    UHF_init_config();
+#endif
+
     start_service_server();
     vTaskDelete(0);
 }
@@ -201,7 +218,7 @@ void bl_main(resetSource_t rstsrc) {
     }
 
     // if we make it here the golden image didn't work
-
+    _enable_IRQ_interrupt_(); // enable inturrupts
     /* Initialize SCI Routines to receive Command and transmit data */
     sciInit();
     canInit();
@@ -253,10 +270,3 @@ void vApplicationMallocFailedHook(void) {
 }
 
 void vApplicationDaemonTaskStartupHook(void) {}
-
-void ex2_log(const char *format, ...) {
-    va_list arg;
-    va_start(arg, format);
-    vprintf(format, arg);
-    va_end(arg);
-}
