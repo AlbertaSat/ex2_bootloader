@@ -29,6 +29,7 @@
 
 #include "uhf.h"
 #include "service_utilities.h"
+#include "sdr_driver.h"
 
 #define CHAR_LEN 1 // If using Numpy unicode string, change to 4
 #define CALLSIGN_LEN 6
@@ -538,7 +539,6 @@ SAT_returnState communication_service_app(csp_packet_t *packet) {
         csp_iface_t *iface = csp_iflist_get_by_name(SDR_IF_UHF_NAME);
         sdr_interface_data_t *ifdata = iface->interface_data;
         status = sdr_uhf_set_rf_mode(ifdata, mode);
-        sys_log(INFO, "Changed to RF Mode %d successfully\n", mode);
         memcpy(&packet->data[STATUS_BYTE], &status, sizeof(int8_t));
         break;
     }
