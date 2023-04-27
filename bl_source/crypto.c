@@ -22,7 +22,7 @@
 #include "bl_eeprom.h"
 #include <stdbool.h>
 
-#define KEY_TEST_MODE 1
+#define KEY_TEST_MODE 0
 #define KEY_SET_MODE 0
 #define KEY_LEN 64
 
